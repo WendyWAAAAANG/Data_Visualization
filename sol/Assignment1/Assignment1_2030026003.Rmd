@@ -1,0 +1,219 @@
+---
+title: "Assignment1_2030026003"
+author: "CaiHuaiyu(Edward)"
+date: "2023-04-22"
+output: html_document
+---
+
+Q1. List and data frame
+a. (5 marks) Construct a list that contains 4 components named Zhuhai, Wuhan, Shanghai, Beijing. Each component is a 3-dimensional vector contains weather, highest temperature, lowest temperature, which are given in the output.
+```{r}
+Zhuhai <- c("Mostly Sunny",29,14)
+Wuhan <- c("Mostly Sunny",30,19)
+Shanghai <- c("Cloudy",26,12)
+Beijing <- c("Rainy",19,10)
+weather <- list(Zhuhai = Zhuhai, Wuhan = Wuhan, Shanghai = Shanghai, Beijing = Beijing)
+print(weather)
+```
+
+b. (5 marks) Construct a data frame with 4 rows and 4 columns like the output.
+```{r}
+weather <- data.frame(city = c("Zhuhai", "Wuhan", "Shanghai", "Beijing"),
+                         weather = c("Sunny", "Sunny", "Cloudy", "Rainy"),
+                         high_Tem = c(20, 21, 16, 19),
+                         low_Tem = c(14, 19, 12, 15))
+
+print(weather)
+```
+
+```{r}
+weather <- list(
+  c("Sunny", 20, 14),
+  c("Sunny", 21, 19),
+  c("Cloudy", 16, 12),
+  c("Rainy", 19, 15)
+)
+
+# Create a data frame with the weather data
+weather_df <- data.frame(city = c("Zhuhai", "Wuhan", "Shanghai", "Beijing"),
+                         weather = sapply(weather, "[", 1),
+                         high_Tem = sapply(weather, "[", 2),
+                         low_Tem = sapply(weather, "[", 3))
+
+# Print the data frame
+print(weather_df)
+```
+
+Q2. (20 marks) Read file and data processing
+a. (10 marks) Selecting variables and observations
+Please download the data file fuel_economy.csv from the iSpace first. Use the function select in the package dplyr to deal with the fuel economy data.
+```{r}
+# Loading package 
+library(dplyr)
+
+# Read fuel economy data from the file named 'fuel_economy.csv' and 
+# assign it to the variable 'fuel_eco'
+fuel_eco <- read.csv("fuel_economy.csv")
+
+# Select the variables manufacturer, model, year, and fl 
+newdata <- select(fuel_eco,manufacturer, model, year, fl)
+
+# Print the variable names
+print(colnames(newdata))
+```
+
+```{r}
+# Select all the variables except cty and hwy
+newdata <- select(fuel_eco, -c(cty, hwy))
+
+# Print the variable names
+print(colnames(newdata))
+```
+
+```{r}
+# Select the models that are suv classes and contain 4 cylinders (variable: cyl)
+newdata <- filter(data <- select(fuel_eco,X, manufacturer, model, displ, year, cyl, trans, drv, cty, hwy, fl, class),
+                  class == "suv" & cyl == 4)
+# Print the selected models
+print(newdata)
+```
+
+b. (10 marks) Grouping and summarizing data
+```{r}
+# Calculate the mean displacement (variable: displ) and mean highway miles per gallon (variable: hwy)
+newdata <- summarize(fuel_eco, 
+                     mean_displ = mean(displ, na.rm=TRUE),
+                     mean_hwy = mean(hwy, na.rm=TRUE))
+newdata
+```
+
+```{r}
+# Calculate the mean of displ and hwy for 8 cylinders models by manufacture
+newdata <- group_by(fuel_eco, manufacturer) %>%
+  filter(cyl == 8) %>%
+  summarize(mean_displ = mean(displ, na.rm=TRUE),mean_hwy = mean(hwy, na.rm=TRUE))
+newdata
+```
+
+
+Q3 (20 marks) Visualization with ggplot2
+The data “LifeSavings.csv” contanis the information on the average life cycle savings of 50 countries over decade 1960-1970. The descriptions of 6 variables are listed below.
+
+a.(10 marks) Please use the ggplot to draw the bar chart for two variables country and sr. The theme theme_classic() may be needed.
+```{r}
+library(ggplot2)
+ls <- read.csv("LifeSavings.csv")
+ggplot(ls, aes(x = reorder(country, sr), y = sr)) + 
+  geom_bar(stat = "identity") + 
+  labs(x = "",
+       y = "Aggregate prsonal savings") + 
+  coord_flip() + 
+  theme_classic()
+```
+
+b. (10 marks) Please highlight the countries that the percentage of population less than 15 years old (pop15) is greater than 40 and percentage of population over 75 years old (pop75) is less than 1. You may need the colors set {“lightgray”, “#F1A340”}.
+```{r}
+library(ggplot2)
+ls <- read.csv("LifeSavings.csv")
+ggplot(ls, aes(x = reorder(country, sr), y = sr, fill = (pop15 > 40 & pop75 < 1))) + 
+  geom_bar(stat = "identity") +
+  labs(x = "",
+       y = "Aggregate prsonal savings") +
+  coord_flip() + 
+  theme_classic() + 
+  scale_fill_manual(values = c("lightgray", "#F1A340")) + 
+  guides(fill = FALSE)
+```
+
+Q4 (50 marks) A tiny project
+The data file Real-Estate.txt contains information on the homes sold in the Denver area during the year 2003. The variables in this data file are as follows:
+
+Variable            Description
+Price               Selling price in $1000
+Bedrooms            Number of bedrooms
+Size                Size of the home in square feet
+Pool                Whether having a swimming Pool (yes or no)
+Distance            Distance from the home to the center of the city
+Township            Township No.
+Garage              Whether is garage attached (yes or no)
+Baths               Number of bathrooms
+
+a. (10 marks) Please analyze the data and abstract at least 2 tasks.
+
+```{r}
+library(GGally)
+re <- read.table("Real-Estate.txt", header = TRUE)
+
+# Compute the correlation matrix
+cor_matrix <- cor(re[, c("Price", "Bedrooms", "Size", "Pool", "Distance", "Township", "Garage", "Baths")], method = "spearman")
+
+# Print the correlation matrix
+cor_matrix
+```
+Firstly, from the table, we know that there are 8 attributes("Price", "Bedrooms", "Size", "Pool", "Distance", "Township", "Garage", "Baths") totally. Analyzing those attributes in details. For Price, its format is Numeric, its attribute types is Quantitative. For Bedrooms, its format is Numeric, its attribute types is Quantitative. For Size, its format is Numeric, its attribute types is Quantitative. For Pool, its format is Numeric, its attribute types is Categorical. For Distance, its format is Numeric, its attribute types is Quantitative. For Township, its format is Numeric, its attribute types is Categorical. For Garage, its format is Numeric, its attribute types is Categorical. For Baths, its format is Numeric, its attribute types is Quantitative.
+Then, we calculate the Spearman’s Rank Correlation Coefficient to see their correlation between each other(because using Spearman’s Rank Correlation Coefficient, we don't need to consider the data type, since it can be used on both categorical and numeric attributes), and we find that the price are moderate correlated to all the attributes except for Township. Furthermore, Price are positive moderate correlated with Bedrooms, Size, Garage and Baths, and nagetive moderate correlated with Pool, Distance. (We set the weak correlation interval from 0.00 to 0.30, the moderate correlation interval from 0.30 to 0.70, and the strong correlation interval from 0.70 to 1.00, according to Statistics: The conceptual approach)
+
+From these results, we decide to conduct 2 tasks.
+Task 1: Since we have analyze the concrete correlation of among those attributes, the correlation between Bedrooms and Size is positive moderate correlated, use the scatterplot to prove that(see the distribution,correlation). 
+Task 2: Furthermore, try to create Multi-class Scatterplots to show the price distribution,trends among Size, Distance, Township, Garage. Try to create Multi-class Scatterplots to show the price distribution, trends among Size, Distance, Township, Pool.
+Task 3: Identify the townships with the highest and lowest home prices on avergae, and then rank the results.
+
+b. (10 marks) Design your visualization according to the design principles and give your justification. Please write your design thoughts clearly.
+
+By analyzing the attribute type, from the table, we know that there are 8 attributes("Price", "Bedrooms", "Size", "Pool", "Distance", "Township", "Garage", "Baths") totally. Analyzing those attributes in details. For Price, its format is Numeric, its attribute types is Quantitative. For Bedrooms, its format is Numeric, its attribute types is Quantitative. For Size, its format is Numeric, its attribute types is Quantitative. For Pool, its format is Numeric, its attribute types is Categorical. For Distance, its format is Numeric, its attribute types is Quantitative. For Township, its format is Numeric, its attribute types is Categorical. For Garage, its format is Numeric, its attribute types is Categorical. For Baths, its format is Numeric, its attribute types is Quantitative.
+In the task 1, we decide to use the scatterplot to do the visualization. Because we want to find the distribution and its trends, and the attribute we have are 2 quantitative attributes 2 quantitative attributes, no keys, the mark is points, the channel is Horizontal + vertical positions. And we use the color depth to represent the quantites of bedrooms.
+In the task 2, we decide to use the combining chart:Multi-class scatterplot&Bubble chart to do the visualization. Because we want to find the distribution and its trends, and for the attribute, the attribute we have are 3 quantitative attributes 2 categorical attributes, and for the distance, we use the bubble size to represent in the plot, the mark are points, area, the channel are Horizontal + vertical positions, Separated but not ordered or aligned, size and colors.
+In the task 3, we decide to use the bar chart to do the visualization. Because we want to compare the values under the categorical attribute. The attributes are 1 categorical, 1 quantitative. The mark are line, the channels are Aligned lengths, Ordered byqualitative attribute(price).
+
+
+c. (20 marks) Implement your visualization by R. Please write the annotations for each step.
+
+```{r}
+library(ggplot2)
+library(plotly)
+#read the txt file
+re <- read.table("Real-Estate.txt", header = TRUE)
+
+#Transform the categorical attribute into char, but not int
+re$Township <- as.character(re$Township)
+re$Pool <- as.character(re$Pool)
+re$Garage <- as.character(re$Garage)
+
+#scatterplot, x is bedrooms, y is price, the color is decided by bedrooms, show the point, and sacle with log10
+gg0 <- ggplot(re, aes(Bedrooms, Price,color = Bedrooms)) +
+  geom_point() +
+  labs(title = "Price changing with bedrooms") + 
+  scale_x_log10()
+
+#scatterplot, x is size, y is price, the color is decided by township, show the point, and sacle with log10
+gg <- ggplot(re, aes(Size, Price, color = Township)) +
+  geom_point(aes(size = Distance, frame = Garage)) + 
+  labs(title = "Price changing with Size for Township and Garage") + 
+  scale_x_log10()
+
+#scatterplot, x is bedrooms, y is price, the color is decided by bedrooms, show the point, and sacle with log10
+gg1 <- ggplot(re, aes(Size, Price, color = Township)) +
+  geom_point(aes(size = Distance, frame = Pool)) + 
+  labs(title = "Price changing with Size for Township and Pool") + 
+  scale_x_log10()
+
+#plot them out
+ggplotly(gg0)
+ggplotly(gg)
+ggplotly(gg1)
+
+
+township_summary <- aggregate(Price ~ Township, data = re, FUN = mean)
+
+# Rank the townships based on mean home price
+ranked_townships <- township_summary[order(township_summary$Price, decreasing = TRUE), ]
+
+# Create the bar chart
+ggplot(ranked_townships, aes(x = reorder(Township, Price), y = Price)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(x = "Township", y = "Mean Price ($1000s)", title = "Mean Home Prices by Township") +
+  theme(axis.text.x = element_text(vjust = 0.5, hjust = 1))
+```
+
+
+

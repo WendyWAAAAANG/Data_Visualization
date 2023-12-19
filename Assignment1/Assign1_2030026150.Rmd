@@ -1,0 +1,139 @@
+---
+title: "Assignment1_DV"
+author: "Ruoxin WANG"
+date: "2023-10-19"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+#Q1. Installing packages
+Please install the following packages in your laptop using the following code (you need fill in the REPLACE part first):
+
+ggplot2, dplyr, tidyr, mosaicData, carData, VIM, scales, treemapify, gapminder, ggmap, choroplethr, choroplethrMaps, CGPfunctions, ggcorrplot, visreg, gcookbook, forcats, survival, survminer, ggalluvial, ggridges, GGally, superheat, waterfalls, factoextra, networkD3, ggthemes, hrbrthemes, ggpol, ggbeeswarm.
+
+Copy the completed codes in the console of RStudio to install all the packages above. Please use the option (eval = FALSE) for the following r code chunk — to not run the code.
+
+```{r eval=FALSE}
+# Installing packages: 
+pkgs <- c('ggplot2', 'dplyr', 'tidyr', 'mosaicData', 'carData', 'VIM', 'scales', 'treemapify', 'gapminder', 'ggmap', 'choroplethr', 'choroplethrMaps', 'CGPfunctions', 'ggcorrplot', 'visreg', 'gcookbook', 'forcats', 'survival', 'survminer', 'ggalluvial', 'ggridges', 'GGally', 'superheat', 'waterfalls', 'factoextra', 'networkD3', 'ggthemes', 'hrbrthemes', 'ggpol', 'ggbeeswarm')
+install.packages(pkgs)
+```
+
+
+#Q2. List
+Construct a list that contains 4 components named Zhuhai, Wuhan, Shanghai, Beijing. Each component is a 3-dimensional vector contains weather, highest temporature, lowest temporature, which are given in the output.
+
+```{r}
+# Create a list containing weather information for four cities
+Zhuhai <- c("Sunny", 30, 20)
+Wuhan <- c("Cloudy", 28, 18)
+Shanghai <- c("Rainy", 25, 15)
+Beijing <- c("Partly Cloudy", 26, 12)
+
+weather <- list(Zhuhai, Wuhan, Shanghai, Beijing)
+print(weather)
+```
+
+
+#Q3. Data Frame
+Construct a data frame with 4 rows and 4 columns like the output.
+
+```{r}
+# Create a data frame
+weather <- data.frame(
+  city = c("Zhuhai", "Wuhan", "Shanghai", "Beijing"),
+  weather = c("Sunny", "Sunny", "Cloudy", "Rainy"),
+  high_Tem = c(20, 21, 16, 19),
+  low_Tem = c(14, 19, 12, 15)
+)
+
+print(weather)
+```
+
+
+#Q4. Reading a File
+Read the data from the file Salaries.txt, which has been uploaded in iSpace, and store it into the variable myData.
+
+```{r}
+myData <- read.table("Salaries.txt", header = TRUE, sep = "\t")
+print(myData[1:5, ])
+```
+
+
+#Q5. Writing Into a File
+Write the weather data defined in question 3 into a file named weather.csv. Then read the weather data from this csv file and store in the variable myData.
+
+Hint: You may need to use sep option for write.table.
+
+```{r}
+weather <- data.frame(
+  city = c("Zhuhai", "Wuhan", "Shanghai", "Beijing"),
+  weather = c("Sunny", "Sunny", "Cloudy", "Rainy"),
+  high_Tem = c(20, 21, 16, 19),
+  low_Tem = c(14, 19, 12, 15)
+)
+
+# Write weather data to a CSV file
+write.csv(weather, file = "weather.csv", row.names = FALSE)
+
+# Read weather data from the CSV file and store it in myData
+myData <- read.csv("weather.csv")
+print(myData)
+```
+
+
+#Q6. Data Processing
+a. Selecting variables and observations
+Please download the data file fuel_economy.csv from the iSpace first. Use the function select in the package dplyr to deal with the fuel economy data.
+Hint: Options warning=FALSE, message=FALSE for not displaying the warning messages.
+
+```{r}
+# Loading package 
+library(dplyr)
+
+# Read fuel economy data from the file named 'fuel_economy.csv' and 
+# assign it to the variable 'fuel_eco'
+fuel_eco <- read.csv("fuel_economy.csv", header = TRUE, stringsAsFactors = FALSE)
+
+# Select the variables manufacturer, model, year, and fl 
+newdata <- fuel_eco %>% select(manufacturer, model, year, fl)
+
+# Print the variable names
+print(colnames(newdata))
+```
+
+```{r}
+# Select all variables except cty and hwy
+newdata <- fuel_eco %>% select(-cty, -hwy)
+
+# Print the variable names
+print(colnames(newdata))
+```
+
+```{r}
+# Select the models that are suv classes and contain 4 cylinders (variable: cyl)
+newdata <- fuel_eco %>% filter(class == "suv" & cyl == 4)
+
+# Print the selected models
+print(newdata)
+```
+
+b. Grouping and summarizing data
+
+```{r}
+# Calculate the mean displacement (variable: displ) and mean highway miles per gallon (variable: hwy)
+newdata <- fuel_eco %>% 
+  summarize(mean_displ = mean(displ), mean_hwy = mean(hwy))
+newdata
+```
+
+```{r}
+# Calculate the mean of displ and hwy for 8 cylinders models by manufacturer
+newdata <- fuel_eco %>% 
+  filter(cyl == 8) %>% 
+  group_by(manufacturer) %>% 
+  summarize(mean_displ = mean(displ), mean_hwy = mean(hwy))
+newdata
+```
+

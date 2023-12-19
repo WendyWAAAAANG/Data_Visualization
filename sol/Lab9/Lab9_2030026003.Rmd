@@ -1,0 +1,271 @@
+---
+title: "Lab9_2030026003"
+author: "CaiHuaiyu(Edward)"
+date: "2023-05-02"
+# output: html_document
+
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+    social: [ "wechat", "menu"]
+    source_code: embed
+---
+
+```{r}
+#install.packages("flexdashboard")
+#install.packages("DT")
+#install.packages("rpivotTable")
+#install.packages("openintro")
+#install.packages("highcharter")
+#install.packages("ggvis")
+#install.packages("ggrepel")
+```
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(knitr)
+library(DT)
+library(rpivotTable)
+library(ggplot2)
+library(plotly)
+library(dplyr)
+library(openintro)
+library(highcharter)
+library(ggvis)
+library(ggrepel)
+```
+
+
+```{r}
+data <- read.table("Baseball2010.txt", header = TRUE)
+```
+
+```{r}
+mycolors <- c("blue", "#FFC125", "darkgreen", "darkorange")
+```
+
+Interactive Data Visualization
+=====================================
+
+Row
+-------------------------------------
+
+### Baseball2010
+
+```{r}
+valueBox(paste("Baseball2010"),
+         color = "warning")
+```
+
+### Baseball's team in US
+
+```{r}
+valueBox(length(data$Team),
+         icon = "fa-user")
+```
+
+### **Salary**
+
+```{r}
+gauge(round(mean(data$Salary),
+            digits = 2),
+      min = 0,
+      max = 100,
+      gaugeSectors(success = c(0, 50),
+                   warning = c(50, 80),
+                   danger = c(80, 100),
+                   colors = c("green", "yellow", "red")))
+```
+
+### American League
+```{r}
+valueBox(sum(data$League == 1),
+         icon = 'fa-building')
+```
+
+### National League
+
+```{r}
+valueBox(sum(data$League == 0),
+         icon = 'fa-building')
+```
+
+<!-- ### Size less than 2 -->
+
+<!-- ```{r} -->
+<!-- valueBox(sum(data$Size <2), -->
+<!--          icon = 'fa-building') -->
+<!-- ``` -->
+
+<!-- ### Size larger than 1 -->
+
+<!-- ```{r} -->
+<!-- valueBox(sum(data$Size > 1), -->
+<!--          icon = 'fa-building') -->
+<!-- ``` -->
+
+Row 
+-------------------------------
+
+### Wins By Team
+
+```{r}
+p1 <- data %>%
+         group_by(Team) %>%
+         plot_ly(x = ~Team,
+                 y = ~Wins,
+                 color = "blue",
+                 type = 'bar') %>%
+layout(xaxis = list(title = "Wins By Team"),
+yaxis = list(title = 'Wins'))
+p1
+
+data$Wins
+
+```
+
+### Top Teams
+
+```{r}
+p2 <- data %>%
+         group_by(Team) %>%
+         filter(Wins>90) %>%
+         plot_ly(labels = ~Team,
+                 values = ~Wins,
+                 marker = list(colors = mycolors)) %>%
+         add_pie(hole = 0.2) %>%
+         layout(xaxis = list(zeroline = F,
+                             showline = F,
+                             showticklabels = F,
+                             showgrid = F),
+                yaxis = list(zeroline = F,
+                             showline = F,
+                             showticklabels=F,
+                             showgrid=F))
+p2
+```
+
+Row 
+------------------------------------
+### Team Batting Average Vs Team Errors
+
+```{r}
+p3 <- plot_ly(data,
+              x = ~Batting,
+              y = ~Errors,
+              text = paste("Batting:", data$Batting,
+                           "Errors:",
+                           data$Errors),
+              type = "bar") %>%
+         layout(xaxis = list(title="Batting"),
+                yaxis = list(title = "Errors"))
+p3
+```
+
+
+### Scatter Plot of ERA Vs Stolen
+
+```{r}
+p4 <- plot_ly(data, x=~Stolen) %>%
+         add_markers(y = ~ERA,
+                     text = ~paste("ERA: ", ERA),
+                     showlegend = F) %>%
+         add_lines(y = ~fitted(loess(ERA ~ Stolen)),
+                   name = "Loess Smoother",
+                   color = I("#FFC125"),
+                   showlegend = T,
+                   line = list(width=5)) %>%
+         layout(xaxis = list(title = "Stolen"),
+                yaxis = list(title = "ERA"))
+p4
+```
+
+
+
+Bubble Salary Vs Wins
+========================================
+
+### Bubble Salary Vs Wins by different size team
+
+```{r}
+ggplot(data=data,aes(x=Salary,y=Wins))+
+  geom_point(aes(size=Size,fill=Size),shape=21,colour="black",alpha=0.8)+
+  scale_fill_gradient2(low="#377EB8",high="#E41A1C",limits=c(0,max(data$Size)),
+                       midpoint=mean(data$Size))+
+  scale_size_area(max_size=12)+
+  geom_text_repel(label=data$Size)
+```
+
+Data Table
+========================================
+
+```{r}
+datatable(data,
+          caption = "Baseball Data in 2010",
+          rownames = T,
+          filter = "top",
+          options = list(pageLength = 25))
+```
+
+Pivot Table
+=========================================
+
+```{r}
+rpivotTable(data,
+            aggregatorName = "Count",
+            cols= "Size",
+            rows = "Team",
+            rendererName = "Heatmap")
+```
+
+Summary {data-orientation=columns} 
+===========================================
+
+Column 
+-----------------------------------
+
+### Max Size among team
+
+```{r}
+valueBox(max(data$Size),
+         icon = "fa-user" )
+```
+### Average Size among team
+
+```{r}
+valueBox(mean(data$Size),
+         icon = "fa-area-chart" )
+```
+
+
+### Average Attendance among team
+```{r}
+valueBox(round(mean(data$Attendance),
+               digits = 2),
+         icon = "fa-area-chart")
+```
+
+### Average HR among team
+
+```{r}
+valueBox(round(mean(data$HR), digits = 2),
+         icon = "fa-area-chart")
+```
+
+Column
+---------------------------
+
+Report
+
+* This is a report on `r length(data$Team)` team.
+
+* The max size among team was `r max(data$size)`.
+
+* The average size among team was `r mean(data$Size)`.
+
+* The average attendance among team was `r mean(data$Attendance)`.
+
+* The average HR among team was `r mean(data$HR)`.
+
+This report was generated on `r format(Sys.Date(), format = "%B %d, %Y")`.

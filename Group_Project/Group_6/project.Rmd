@@ -1,0 +1,1352 @@
+---
+title: "Nutrition facts of American Fast Food"
+author: "Group6"
+date: "2023-12-05"
+output: 
+  flexdashboard::flex_dashboard:
+    vertical_layout: fill
+    social: [ "wechat", "menu"]
+    source_code: embed
+---
+
+</style>
+<style type="text/css">
+  body{background:#E1F2FC;}
+</style>
+
+```{r}
+library(hchinamap)
+library(magrittr)
+library(ggplot2)
+library(plotly)
+library(reshape2)
+library(dplyr)
+library(openintro)
+library(highcharter)
+library(ggvis)
+library(tidyr)
+library(readxl)
+library(flexdashboard)
+library(knitr)
+library(DT)
+library(rpivotTable)
+library(viridis)
+library(GGally)
+library(rlang)
+library(ggcorrplot)
+library(ggrepel)
+```
+
+
+```{r, include=FALSE}
+# Read CSV file
+#df_fat <- read.csv("fat.csv") 
+data2 <- read_excel('FastFoodStores.xlsx')
+
+df <- read.csv('FastFoodNutritionMenuV2.csv',encoding="uft_8", sep = ",", check.names=FALSE)
+# Replace newline characters in column names with spaces
+colnames(df) <- c("Company", "Item", "Calories", "CaloriesFromFat", "TotalFat", "SaturatedFat", "TramsFat", "Cholesterol", "Sodium", "Carbs", "Fiber", "Sugars", "Protein", "WeightWatchersPnts")
+
+# Print missing values before and after dropping a specific column
+print(colSums(is.na(df)))
+df <- df[,-14]
+df <- df[,-4]
+print(colSums(is.na(df)))
+
+# Create a collection for special values
+special_values_collection <- list()
+
+# Loop through each column starting from the third column (index 2)
+for (column in names(df)[3:length(names(df))]) {
+  # Initialize the value of the collection to a list
+  special_values_collection[[column]] <- c()
+
+  # Iterate through unique values in the column
+  for (value in unique(df[[column]])) {
+    # Try converting the value to a numeric type
+    is_numeric <- suppressWarnings(!is.na(as.numeric(value)))
+    
+    # If not numeric, add to the special values collection
+    if (!is_numeric) {
+      special_values_collection[[column]] <- c(special_values_collection[[column]], value)
+    }
+  }
+}
+
+# Loop through columns and update them
+for (column in names(df)[3:length(names(df))]) {
+  cat("Column: ", column, "\n")
+  special_chars <- special_values_collection[[column]]
+  values <- as.numeric(df[!(df[[column]] %in% special_chars), column])
+  mean_value <- round(mean(values, na.rm = TRUE), 3)
+  
+  # Fill missing values with the mean
+  df[[column]][is.na(df[[column]])] <- mean_value
+  
+  # Replace special characters with mean or specific value
+  for (special_char in special_chars) {
+    if (special_char == "<1") {
+      df[[column]] <- ifelse(df[[column]] == special_char, 0, df[[column]])
+    } else {
+      df[[column]] <- ifelse(df[[column]] == special_char, mean_value, df[[column]])
+    }
+  }
+  
+  # Convert the column to numeric type
+  df[[column]] <- as.numeric(df[[column]])
+}
+
+```
+
+```{r, include=FALSE}
+McDonald<-subset(df, df$Company== "McDonald’s")
+KFC<-subset(df, df$Company== "KFC")
+BurgerKing<-subset(df, df$Company== "Burger King")
+PizzaHut<-subset(df, df$Company== "Pizza Hut")
+TacoBell<-subset(df, df$Company== "Taco Bell")
+Wendy<-subset(df, df$Company== "Wendy’s")
+```
+
+```{r}
+store_counts <- data2 %>%
+  group_by(name, province) %>%
+  summarise(total_count = n()) %>%
+  pivot_wider(names_from = name, values_from = total_count, values_fill = 0) %>%
+  mutate(total = rowSums(across(-province)))
+
+br <- store_counts %>%
+  select(-province) %>%
+  pivot_longer(cols = -total, names_to = "brand", values_to = "counts") %>%
+  group_by(brand) %>%
+  summarize(total_stores = sum(counts))
+
+#merged <- left_join(store_counts, df_fat, by = "province")
+#merged
+```
+
+
+# Overview {data-icon="ion-clipboard"}
+
+## Column {data-hight=200}
+
+### 
+```{r}
+valueBox(paste("Distribution of Fast-food Restaurant"),
+         color = "warning",icon = "ion-android-restaurant")
+```
+
+### 
+```{r}
+custom_colors <- c("#A9DB7F", "#FFCA2C", "#FAD4CF", "#E1F2FC", "#EA9E76", "#FFF3E0")
+
+# 创建直方图
+bar_plot <- ggplot(br, aes(x = brand, y = total_stores, fill = brand)) +
+  geom_bar(stat = "identity") +
+  labs(title = "", x = "Brand", y = "Stores Amount") +
+  theme_minimal() +
+  scale_fill_manual(values = custom_colors)
+
+# 转换为交互式图表
+interactive_bar_plot <- ggplotly(bar_plot)
+interactive_bar_plot
+```
+
+### 
+```{r}
+# 创建饼图
+pie_chart <- plot_ly(
+  labels = br$brand,
+  values = br$total_stores,
+  type = "pie",
+  textinfo = "label+percent",
+  insidetextfont = list(color = "black"),
+  marker = list(colors =  custom_colors)
+) 
+
+# 设置布局
+layout <- list(title = "Company Distribution")
+
+# 合并图表和布局
+pie_chart <- pie_chart %>% layout(layout)
+
+# 打印饼图
+pie_chart
+```
+## Column 
+
+
+### 
+```{r}
+valueBox(paste("Distribution of Nutritional Ingredient"),
+         color = "warning",icon = "ion-beer")
+```
+
+### 
+```{r}
+total_summary <- df %>%
+  summarize(
+    TotalCalories = sum(Calories),
+    TotalTotalFat = sum(TotalFat),
+    TotalSaturatedFat = sum(SaturatedFat),
+    TotalTramsFat = sum(TramsFat),
+    TotalCholesterol = sum(Cholesterol),
+    TotalSodium = sum(Sodium),
+    TotalCarbs = sum(Carbs),
+    TotalFiber = sum(Fiber),
+    TotalSugars = sum(Sugars),
+    TotalProtein = sum(Protein)
+  )
+total_summary <- pivot_longer(total_summary, cols = everything(), names_to = "Nutrient", values_to = "Value")
+total_summary  <- total_summary  %>%
+  arrange(desc(Value))
+blue_palette <- colorRampPalette(c("#FFF3E0", "#8F2A2A"))
+# 生成颜色
+co <- blue_palette(length(total_summary$Value))
+PIE <- plot_ly(total_summary, labels = ~Nutrient, values = ~Value) %>%
+  add_pie(marker = list(colors = co, line = list(color = 'white', width = 0.1)),
+          type = 'pie', hole = 0.2,
+          textinfo = 'label+percent',
+          hoverinfo = 'label+value+percent',
+          pull = c(0.05)) %>%
+  layout(xaxis = list(zeroline = F, showline = F, showticklabels = F, showgrid = F),
+         yaxis = list(zeroline = F, showline = F, showticklabels = F, showgrid = F),height = 560,
+  margin = list(l = 90, r = 20, b = 170, t = 10) )
+PIE
+```
+
+# Nutrient Content of Different Fast-food Restaurants {data-navmenu="Dataset"}
+
+### Nutrient Content of Various Types of Fast Food Restaurants
+
+```{r}
+DT::datatable(df,
+              rownames = FALSE,
+              options = list(pageLength = 5, 
+                             scrollY = FALSE),
+              class = "display")
+```
+
+# Amount of Different Fast-food Restaurants in US {data-navmenu="Dataset"}
+
+
+
+
+###  Amount of Different Fast-food Restaurants in US
+```{r}
+# 计算每家店在每个省的总数
+
+DT::datatable(store_counts,
+              rownames = FALSE,
+              options = list(pageLength = 25, 
+                             scrollY = FALSE),
+              class = "display")
+```
+
+
+
+
+
+# Ingredient Percentage {data-navmenu="Nutritional Ingredient"}
+
+Row
+----------------------------------------
+
+```{r, include=FALSE}
+MCaverageValues <- colMeans(McDonald[3:12])
+MCPieChart <- data.frame(
+  Index = names(MCaverageValues),
+  AverageValue = as.vector(MCaverageValues)
+)
+
+KFCaverageValues <- colMeans(KFC[3:12])
+KFCPieChart <- data.frame(
+  Index = names(KFCaverageValues),
+  AverageValue = as.vector(KFCaverageValues)
+)
+
+BKaverageValues <- colMeans(BurgerKing[3:12])
+BKPieChart <- data.frame(
+  Index = names(BKaverageValues),
+  AverageValue = as.vector(BKaverageValues)
+)
+
+PHaverageValues <- colMeans(PizzaHut[3:12])
+PHPieChart <- data.frame(
+  Index = names(PHaverageValues),
+  AverageValue = as.vector(PHaverageValues)
+)
+
+TBaverageValues <- colMeans(TacoBell[3:12])
+TBPieChart <- data.frame(
+  Index = names(TBaverageValues),
+  AverageValue = as.vector(TBaverageValues)
+)
+
+WDaverageValues <- colMeans(Wendy[3:12])
+WDPieChart <- data.frame(
+  Index = names(WDaverageValues),
+  AverageValue = as.vector(WDaverageValues)
+)
+blue_palette <- colorRampPalette(c("#FFF3E0", "#8F2A2A"))
+top_n_items <- 7
+
+```
+
+
+
+
+```{r}
+#MC
+MCPieChart <- MCPieChart %>%
+  arrange(desc(AverageValue)) %>%
+  mutate(Index = ifelse(row_number() > top_n_items, "Other", as.character(Index)))
+
+color_values <- ifelse(MCPieChart$Index %in% c("Other", unique(MCPieChart$Index)[1:top_n_items]), blue_palette(length(unique(MCPieChart$Index))), "gray")
+
+MCPIE <- plot_ly(MCPieChart, labels = ~Index, values = ~AverageValue) %>%
+  add_pie(marker = list(colors = color_values, line = list(color = 'white', width = 0.1)),
+          type = 'pie', hole = 0.2,
+          textinfo = 'label+percent',
+          hoverinfo = 'label+value+percent',
+          pull = c(0.05)) %>%
+  layout(xaxis = list(zeroline = F, showline = F, showticklabels = F, showgrid = F),
+         yaxis = list(zeroline = F, showline = F, showticklabels = F, showgrid = F),height = 300,
+  margin = list(l = 90, r = 20, b = 120, t = 10) )
+#KFC
+KFCPieChart <- KFCPieChart %>%
+  arrange(desc(AverageValue)) %>%
+  mutate(Index = ifelse(row_number() > top_n_items, "Other", as.character(Index)))
+
+color_values <- ifelse(KFCPieChart$Index %in% c("Other", unique(KFCPieChart$Index)[1:top_n_items]), blue_palette(length(unique(KFCPieChart$Index))), "gray")
+
+KFCPIE <- plot_ly(KFCPieChart, labels = ~Index, values = ~AverageValue) %>%
+  add_pie(marker = list(colors = color_values, line = list(color = 'white', width = 0.25)),
+          type = 'pie', hole = 0.2,
+          textinfo = 'label+percent',
+          hoverinfo = 'label+value+percent',
+          pull = c(0.05)) %>%
+  layout(xaxis = list(zeroline = F, showline = F, showticklabels = F, showgrid = F),
+         yaxis = list(zeroline = F, showline = F, showticklabels = F, showgrid = F),height = 300,
+  margin = list(l = 90, r = 50, b = 140, t = 10))
+
+#PH
+PHPieChart <- PHPieChart %>%
+  arrange(desc(AverageValue)) %>%
+  mutate(Index = ifelse(row_number() > top_n_items, "Other", as.character(Index)))
+
+color_values <- ifelse(PHPieChart$Index %in% c("Other", unique(PHPieChart$Index)[1:top_n_items]), blue_palette(length(unique(PHPieChart$Index))), "gray")
+
+PHPIE <- plot_ly(PHPieChart, labels = ~Index, values = ~AverageValue) %>%
+  add_pie(marker = list(colors = color_values, line = list(color = 'white', width = 0.25)),
+          type = 'pie', hole = 0.2,
+          textinfo = 'label+percent',
+          hoverinfo = 'label+value+percent',
+          pull = c(0.05)) %>%
+  layout(xaxis = list(zeroline = F, showline = F, showticklabels = F, showgrid = F),
+         yaxis = list(zeroline = F, showline = F, showticklabels = F, showgrid = F),height = 300,
+  margin = list(l = 90, r = 50, b = 120, t = 10))
+
+#BK
+BKPieChart <- BKPieChart %>%
+  arrange(desc(AverageValue)) %>%
+  mutate(Index = ifelse(row_number() > top_n_items, "Other", as.character(Index)))
+
+color_values <- ifelse(BKPieChart$Index %in% c("Other", unique(BKPieChart$Index)[1:top_n_items]), blue_palette(length(unique(BKPieChart$Index))), "gray")
+
+BKPIE <- plot_ly(BKPieChart, labels = ~Index, values = ~AverageValue) %>%
+  add_pie(marker = list(colors = color_values, line = list(color = 'white', width = 0.25)),
+          type = 'pie', hole = 0.2,
+          textinfo = 'label+percent',
+          hoverinfo = 'label+value+percent',
+          pull = c(0.05)) %>%
+  layout(xaxis = list(zeroline = F, showline = F, showticklabels = F, showgrid = F),
+         yaxis = list(zeroline = F, showline = F, showticklabels = F, showgrid = F),height = 300,
+  margin = list(l = 90, r = 50, b = 150, t = 10))
+
+#WD
+WDPieChart <- WDPieChart %>%
+  arrange(desc(AverageValue)) %>%
+  mutate(Index = ifelse(row_number() > top_n_items, "Other", as.character(Index)))
+
+color_values <- ifelse(WDPieChart$Index %in% c("Other", unique(WDPieChart$Index)[1:top_n_items]), blue_palette(length(unique(WDPieChart$Index))), "gray")
+
+WDPIE <- plot_ly(WDPieChart, labels = ~Index, values = ~AverageValue) %>%
+  add_pie(marker = list(colors = color_values, line = list(color = 'white', width = 0.25)),
+          type = 'pie', hole = 0.2,
+          textinfo = 'label+percent',
+          hoverinfo = 'label+value+percent',
+          pull = c(0.05)) %>%
+  layout(xaxis = list(zeroline = F, showline = F, showticklabels = F, showgrid = F),
+         yaxis = list(zeroline = F, showline = F, showticklabels = F, showgrid = F),height = 300,
+  margin = list(l = 90, r = 50, b = 150, t = 10))
+
+#TB
+TBPieChart <- TBPieChart %>%
+  arrange(desc(AverageValue)) %>%
+  mutate(Index = ifelse(row_number() > top_n_items, "Other", as.character(Index)))
+
+color_values <- ifelse(TBPieChart$Index %in% c("Other", unique(TBPieChart$Index)[1:top_n_items]), blue_palette(length(unique(TBPieChart$Index))), "gray")
+
+TBPIE <- plot_ly(TBPieChart, labels = ~Index, values = ~AverageValue) %>%
+  add_pie(marker = list(colors = color_values, line = list(color = 'white', width = 0.20)),
+          type = 'pie', hole = 0.2,
+          textinfo = 'label+percent',
+          hoverinfo = 'label+value+percent',
+          pull = c(0.05)) %>%
+  layout(xaxis = list(zeroline = F, showline = F, showticklabels = F, showgrid = F),
+         yaxis = list(zeroline = F, showline = F, showticklabels = F, showgrid = F),height = 250,
+  margin = list(l = 90, r = 50, b = 120, t = 10))
+
+```
+
+### McDanld's
+```{r}
+MCPIE
+```
+
+
+### KFC
+
+```{r}
+KFCPIE
+```
+Column
+----------------------------------------
+
+### Burger King
+
+```{r}
+BKPIE
+```
+
+### Pizza Hut
+
+```{r}
+PHPIE
+```
+
+
+Column
+----------------------------------------
+
+### Taco Bell
+
+```{r}
+TBPIE
+```
+
+### Wendy's
+
+```{r}
+WDPIE
+```
+
+
+
+# Ingredient Distribution {data-navmenu="Nutritional Ingredient"}
+
+
+Row {.tabset .tabset-fade}
+-----------------------------------------------------------------------
+
+### Calories
+
+```{r}
+d_cal <- ggplot(df, aes(x = Company, y = Calories, fill = Company)) +
+  geom_violin() +
+  labs(title = "Calories Distribution by Company", x = "Company", y = "Calories") +
+  theme_minimal()+
+  scale_fill_manual(values = custom_colors)
+d_cal
+```
+
+### Total Fat
+```{r}
+d_tf <- ggplot(df, aes(x = Company, y = TotalFat, fill = Company)) +
+  geom_violin() +
+  labs(title = "Total Fat Distribution by Company", x = "Company", y = "TotalFat") +
+  theme_minimal()+
+  scale_fill_manual(values = custom_colors)
+d_tf
+```
+
+### Saturated Fat
+```{r}
+d_sf <- ggplot(df, aes(x = Company, y = SaturatedFat, fill = Company)) +
+  geom_violin() +
+  labs(title = "Saturated Fat Distribution by Company", x = "Company", y = "SaturatedFat") +
+  theme_minimal()+
+  scale_fill_manual(values = custom_colors)
+d_sf
+```
+
+### TramsFat
+```{r}
+d_trf <- ggplot(df, aes(x = Company, y = TramsFat, fill = Company)) +
+  geom_violin() +
+  labs(title = "TramsFat Distribution by Company", x = "Company", y = "TramsFat") +
+  theme_minimal()+
+  scale_fill_manual(values = custom_colors)
+d_trf
+```
+
+### Cholesterol
+```{r}
+d_ch <- ggplot(df, aes(x = Company, y = Cholesterol, fill = Company)) +
+  geom_violin() +
+  labs(title = "Cholesterol Distribution by Company", x = "Company", y = "Cholesterol") +
+  theme_minimal()+
+  scale_fill_manual(values = custom_colors)
+d_ch
+```
+
+### Carbs
+```{r}
+d_cb <- ggplot(df, aes(x = Company, y = Carbs, fill = Company)) +
+  geom_violin() +
+  labs(title = "Carbs Distribution by Company", x = "Company", y = "Carbs") +
+  theme_minimal()+
+  scale_fill_manual(values = custom_colors)
+d_cb
+```
+
+### Fiber
+```{r}
+d_fb <- ggplot(df, aes(x = Company, y = Fiber, fill = Company)) +
+  geom_violin() +
+  labs(title = "Fiber Distribution by Company", x = "Company", y = "Fiber") +
+  theme_minimal()+
+  scale_fill_manual(values = custom_colors)
+d_fb
+```
+
+### Sugars
+```{r}
+d_sg <- ggplot(df, aes(x = Company, y = Sugars, fill = Company)) +
+  geom_violin() +
+  labs(title = "Sugars Distribution by Company", x = "Company", y = "Sugars") +
+  theme_minimal()+
+  scale_fill_manual(values = custom_colors)
+d_sg
+```
+
+
+
+# Heat Map {data-navmenu="Correlation and Comparison"}
+
+### Heat Map
+
+```{r}
+
+gradient_df <- df[, -c(1,2)]
+correlation_matrix <- cor(gradient_df)
+correlation_data <- melt(correlation_matrix)
+
+plot_ly(
+  data = correlation_data,
+  x = ~Var1,
+  y = ~Var2,
+  z = ~value,
+  type = "heatmap",
+  colors = colorRamp(c("darkorange1", "white")),
+  reversescale = TRUE
+) %>%
+add_annotations(
+  text = ~sprintf("%.2f", value),
+  showarrow = FALSE
+) %>%
+layout(
+  title = "Correlation between Components",
+  xaxis = list(title = "Components", tickangle = 45),
+  yaxis = list(title = "Components"),
+  coloraxis = list(zauto = TRUE, zmin = -1, zmax = 1, zmid = 0) 
+)
+```
+
+# Density Plots {data-navmenu="Correlation and Comparison"} 
+
+```{r}
+ #install.packages("gridExtra")
+library(gridExtra)
+
+d1 <- df %>%
+  ggplot(aes(x = TotalFat, y = Calories)) +
+  stat_density_2d(geom = "polygon", aes(fill = ..level..), h = c(100,1500) ,contour = TRUE) +
+  scale_fill_viridis(option="magma")
+#d1 <- ggplotly(d1)
+#d1 <- d1 %>%
+#  layout(width = 300, height = 300)
+
+d2 <- df %>%
+  ggplot(aes(x = SaturatedFat, y = Calories)) +
+  stat_density_2d(geom = "polygon", aes(fill = ..level..), h = c(100,1500) ,contour = TRUE) +
+  scale_fill_viridis(option="magma")
+#d2 <- ggplotly(d2)
+#d2 <- d2 %>%
+#  layout(width = 300, height = 300)
+
+d3 <- df %>%
+  ggplot(aes(x = TramsFat, y = Calories)) +
+  stat_density_2d(geom = "polygon", aes(fill = ..level..), h = c(100,1500) ,contour = TRUE) +
+  scale_fill_viridis(option="magma")
+#d3 <- ggplotly(d3)
+#d3 <- d3 %>%
+  #layout(width = 300, height = 300)
+
+d4 <- df %>%
+  ggplot(aes(x = Cholesterol, y = Calories)) +
+  stat_density_2d(geom = "polygon", aes(fill = ..level..), h = c(100,1500) ,contour = TRUE) +
+  scale_fill_viridis(option="magma")
+#d4 <- ggplotly(d4)
+#d4 <- d4 %>%
+#  layout(width = 300, height = 300)
+
+d5 <- df %>%
+  ggplot(aes(x = Sodium, y = Calories)) +
+  stat_density_2d(geom = "polygon", aes(fill = ..level..), h = c(100,1500) ,contour = TRUE) +
+  scale_fill_viridis(option="magma")
+#d5<- ggplotly(d5)
+#d5 <- d5 %>%
+#  layout(width = 300, height = 300)
+
+d6 <- df %>%
+  ggplot(aes(x = Carbs, y = Calories)) +
+  stat_density_2d(geom = "polygon", aes(fill = ..level..), h = c(100,1500) ,contour = TRUE) +
+  scale_fill_viridis(option="magma")
+#d6 <- ggplotly(d6)
+#d6 <- d6 %>%
+  #layout(width = 300, height = 300)
+
+
+d7 <- df %>%
+  ggplot(aes(x = Fiber, y = Calories)) +
+  stat_density_2d(geom = "polygon", aes(fill = ..level..), h = c(100,1500) ,contour = TRUE) +
+  scale_fill_viridis(option="magma")
+#d7 <- ggplotly(d7)
+#d7 <- d7 %>%
+  #layout(width = 300, height = 300)
+
+d8 <- df %>%
+  ggplot(aes(x = Sugars, y = Calories)) +
+  stat_density_2d(geom = "polygon", aes(fill = ..level..), h = c(100,1500) ,contour = TRUE) +
+  scale_fill_viridis(option="magma")
+#d8 <- ggplotly(d8)
+#d8 <- d8 %>%
+#  layout(width = 300, height = 300)
+
+d9 <- df %>%
+  ggplot(aes(x = Protein, y = Calories)) +
+  stat_density_2d(geom = "polygon", aes(fill = ..level..), h = c(100,1500) ,contour = TRUE) +
+  scale_fill_viridis(option="magma")
+#d9 <- ggplotly(d9)
+#d9 <- d9 %>%
+#  layout(width = 300, height = 300)
+
+# 呈现这些图表
+#grid.arrange(d1, d2, d3, d4, d5, d6, d7, d8, d9, nrow = 3, ncol = 3, widths = c(600, 600, 600), heights = c(600, 600, 600))
+```
+## Column 
+
+### 
+```{r}
+d1
+```
+
+###
+```{r}
+d2
+```
+
+###
+```{r}
+d3
+```
+
+## Column 
+
+### 
+```{r}
+d4
+```
+
+###
+```{r}
+d5
+```
+
+###
+```{r}
+d6
+```
+
+## Column 
+
+### 
+```{r}
+d7
+```
+
+###
+```{r}
+d8
+```
+
+###
+```{r}
+d9
+```
+
+
+
+
+```{r}
+MC3D <- plot_ly(McDonald, x = ~Sugars, y = ~Carbs, z = ~Calories, 
+                marker = list(color = ~Calories , colorscale = c('#FAD4CF', '#8F2A2A'), showscale = TRUE)) %>%
+  add_markers(hoverinfo = "text", text = ~Item) %>%
+  layout(scene = list(xaxis = list(title = 'Sugar'),
+                      yaxis = list(title = 'Carbohydrates'),
+                      zaxis = list(title = 'Calorie')))
+
+
+
+KFC3D <- plot_ly(KFC, x = ~Sugars, y = ~Carbs, z = ~Calories, 
+                marker = list(color = ~Calories , colorscale = c('#FAD4CF', '#8F2A2A'), showscale = TRUE)) %>%
+  add_markers(hoverinfo = "text", text = ~Item) %>%
+  layout(scene = list(xaxis = list(title = 'Sugar'),
+                      yaxis = list(title = 'Carbohydrates'),
+                      zaxis = list(title = 'Calorie')))
+
+BK3D <- plot_ly(BurgerKing, x = ~Sugars, y = ~Carbs, z = ~Calories, 
+                marker = list(color = ~Calories , colorscale = c('#FAD4CF', '#8F2A2A'), showscale = TRUE)) %>%
+  add_markers(hoverinfo = "text", text = ~Item) %>%
+  layout(scene = list(xaxis = list(title = 'Sugar'),
+                      yaxis = list(title = 'Carbohydrates'),
+                      zaxis = list(title = 'Calorie')))
+
+PH3D <- plot_ly(PizzaHut, x = ~Sugars, y = ~Carbs, z = ~Calories, 
+                marker = list(color = ~Calories , colorscale = c('#FAD4CF', '#8F2A2A'), showscale = TRUE)) %>%
+  add_markers(hoverinfo = "text", text = ~Item) %>%
+  layout(scene = list(xaxis = list(title = 'Sugar'),
+                      yaxis = list(title = 'Carbohydrates'),
+                      zaxis = list(title = 'Calorie')))
+
+TB3D <- plot_ly(TacoBell, x = ~Sugars, y = ~Carbs, z = ~Calories, 
+                marker = list(color = ~Calories , colorscale = c('#FAD4CF', '#8F2A2A'), showscale = TRUE)) %>%
+  add_markers(hoverinfo = "text", text = ~Item) %>%
+  layout(scene = list(xaxis = list(title = 'Sugar'),
+                      yaxis = list(title = 'Carbohydrates'),
+                      zaxis = list(title = 'Calorie')))
+
+WD3D <- plot_ly(Wendy, x = ~Sugars, y = ~Carbs, z = ~Calories, 
+                marker = list(color = ~Calories , colorscale = c('#FAD4CF', '#8F2A2A'), showscale = TRUE)) %>%
+  add_markers(hoverinfo = "text", text = ~Item) %>%
+  layout(scene = list(xaxis = list(title = 'Sugar'),
+                      yaxis = list(title = 'Carbohydrates'),
+                      zaxis = list(title = 'Calorie')))
+```
+
+# 3D-Scatter Plot {data-navmenu="Correlation and Comparison"}
+
+Column
+----------------------------------------
+
+### McDonald's
+```{r}
+MC3D
+```
+### KFC
+```{r}
+KFC3D
+```
+Column
+----------------------------------------
+
+### Burger King
+```{r}
+BK3D
+```
+
+
+### Pizza Hut
+```{r}
+PH3D
+```
+
+Column
+----------------------------------------
+
+### Taco Bell
+```{r}
+TB3D
+```
+### Wendy's
+```{r}
+WD3D
+```
+
+# Fast Food Stores in US {ico="ion-android-globe"}
+
+Column {.tabset .tabset-fade} 
+-------------------------------------
+
+### Total Amount of Stores
+```{r}
+store_counts <- data2 %>%
+  group_by(province) %>%
+  summarise(total_count = n()) %>%
+  arrange(desc(total_count))
+
+base_plot <- ggplot(store_counts, aes(x = reorder(province, -total_count), y = total_count)) +
+  geom_bar(stat = "identity", fill = "#EA9E76") +
+  labs(title = "Store Counts by Province",
+       x = "Province",
+       y = "Count") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(size = 8)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  ylim(0, 350)
+interactive_plot <- ggplotly(base_plot)
+interactive_plot <- interactive_plot %>% layout(height = 400,
+  margin = list(l = 50, r = 50, b = 50, t = 50))
+
+interactive_plot
+```
+
+### McDonald's
+```{r}
+store_counts <- data2 %>%
+  filter(name == "McDonald's") %>%
+  group_by(province) %>%
+  summarise(total_count = n()) %>%
+  arrange(desc(total_count))
+
+base_plot <- ggplot(store_counts, aes(x = reorder(province, -total_count), y = total_count)) +
+  geom_bar(stat = "identity", fill = "#EA9E76") +
+  labs(title = "KFC Counts by Province",
+       x = "Province",
+       y = "Count") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(size = 8)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  ylim(0, 200)
+interactive_plot <- ggplotly(base_plot)
+interactive_plot <- interactive_plot %>% layout(height = 400,
+  margin = list(l = 50, r = 50, b = 60, t = 50))
+
+interactive_plot
+```
+### KFC
+```{r}
+store_counts <- data2 %>%
+  filter(name == "KFC") %>%
+  group_by(province) %>%
+  summarise(total_count = n()) %>%
+  arrange(desc(total_count))
+
+base_plot <- ggplot(store_counts, aes(x = reorder(province, -total_count), y = total_count)) +
+  geom_bar(stat = "identity", fill = "#EA9E76") +
+  labs(title = "KFC Counts by Province",
+       x = "Province",
+       y = "Count") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(size = 8)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  ylim(0, 200)
+interactive_plot <- ggplotly(base_plot)
+interactive_plot <- interactive_plot %>% layout(height = 400,
+  margin = list(l = 50, r = 50, b = 60, t = 50))
+
+interactive_plot
+```
+### Pizza Hut
+```{r}
+store_counts <- data2 %>%
+  filter(name == "Pizza Hut") %>%
+  group_by(province) %>%
+  summarise(total_count = n()) %>%
+  arrange(desc(total_count))
+
+base_plot <- ggplot(store_counts, aes(x = reorder(province, -total_count), y = total_count)) +
+  geom_bar(stat = "identity", fill = "#EA9E76") +
+  labs(title = "Pizza Hut Counts by Province",
+       x = "Province",
+       y = "Count") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(size = 8)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  ylim(0, 200)
+interactive_plot <- ggplotly(base_plot)
+interactive_plot <- interactive_plot %>% layout(height = 400,
+  margin = list(l = 50, r = 50, b = 60, t = 50))
+
+interactive_plot
+```
+### Wendy's
+```{r}
+store_counts <- data2 %>%
+  filter(name == "Wendy's") %>%
+  group_by(province) %>%
+  summarise(total_count = n()) %>%
+  arrange(desc(total_count))
+
+base_plot <- ggplot(store_counts, aes(x = reorder(province, -total_count), y = total_count)) +
+  geom_bar(stat = "identity", fill = "#EA9E76") +
+  labs(title = "Wendy's Counts by Province",
+       x = "Province",
+       y = "Count") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(size = 8)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  ylim(0, 200)
+interactive_plot <- ggplotly(base_plot)
+interactive_plot <- interactive_plot %>% layout(height = 400,
+  margin = list(l = 50, r = 50, b = 60, t = 60))
+
+interactive_plot
+```
+### Taco Bell
+```{r}
+store_counts <- data2 %>%
+  filter(name == "Taco Bell") %>%
+  group_by(province) %>%
+  summarise(total_count = n()) %>%
+  arrange(desc(total_count))
+
+base_plot <- ggplot(store_counts, aes(x = reorder(province, -total_count), y = total_count)) +
+  geom_bar(stat = "identity", fill = "#EA9E76") +
+  labs(title = "Taco Bell Counts by Province",
+       x = "Province",
+       y = "Count") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(size = 8)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  ylim(0, 200)
+interactive_plot <- ggplotly(base_plot)
+interactive_plot <- interactive_plot %>% layout(height = 400,
+  margin = list(l = 50, r = 50, b = 50, t = 50))
+
+interactive_plot
+```
+
+
+### Burger King
+```{r}
+store_counts <- data2 %>%
+  filter(name == "Burger King") %>%
+  group_by(province) %>%
+  summarise(total_count = n()) %>%
+  arrange(desc(total_count))
+
+base_plot <- ggplot(store_counts, aes(x = reorder(province, -total_count), y = total_count)) +
+  geom_bar(stat = "identity", fill = "#EA9E76") +
+  labs(title = "Burger King Counts by Province",
+       x = "Province",
+       y = "Count") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(size = 8)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  ylim(0, 200)
+interactive_plot <- ggplotly(base_plot)
+interactive_plot <- interactive_plot %>% layout(height = 400,
+  margin = list(l = 50, r = 50, b = 50, t = 50))
+
+interactive_plot
+```
+
+Column {.tabset .tabset-fade}
+-------------------------------------
+### Total Count
+```{r}
+store_counts <- data2 %>%
+  group_by(name, province) %>%
+  summarise(total_count = n()) %>%
+  pivot_wider(names_from = name, values_from = total_count, values_fill = 0) %>%
+  mutate(total = rowSums(across(-province)))
+store_counts <- store_counts %>%
+  mutate(count = as.integer(total))
+store_counts$hover <- with(store_counts, paste(province, '<br>', "Count:", total, "<br>"))
+l <- list(color = rgb(1, 1, 1), width = 2)
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showlakes = TRUE,
+  lakecolor = rgb(1, 1, 1)
+)
+fig <- plot_geo(store_counts, locationmode = 'USA-states')
+color <- colorRampPalette(c("white", "sienna2"))(20)
+fig <- fig %>% add_trace(
+  z = ~count, text = ~hover, locations = ~province,
+  color = ~count, colors = color
+)
+fig <- fig %>% colorbar(title = "Total Count")
+fig <- fig %>% layout(
+  title = 'Total Count by State<br>',
+  geo = g
+)
+fig
+
+```
+
+### McDonald's
+```{r}
+#McDonald's
+mc <- data2 %>%
+  filter(name == "McDonald's") %>%
+  group_by(province) %>%
+  summarise(count = n())
+mc$hover <- with(mc, paste(province, '<br>', "McDonald's Count:", count, "<br>"))
+l <- list(color = rgb(1, 1, 1), width = 2)
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showlakes = TRUE,
+  lakecolor = rgb(1, 1, 1)
+)
+color <- colorRampPalette(c("white", "sienna2"))(20)
+fig <- plot_geo(mc, locationmode = 'USA-states')
+fig <- fig %>% add_trace(
+  z = ~count, text = ~hover, locations = ~province,
+  color = ~count, colors = color
+)
+fig <- fig %>% colorbar(title = "McDonald's Count")
+fig <- fig %>% layout(
+  title = 'McDonald\'s Count by State<br>',
+  geo = g
+)
+fig
+```
+
+### KFC
+```{r}
+#KFC
+kfc <- data2 %>%
+  filter(name == "KFC") %>%
+  group_by(province) %>%
+  summarise(count = n())
+#print(kfc)
+kfc$hover <- with(kfc, paste(province, '<br>', "KFC Count:", count, "<br>"))
+l <- list(color = rgb(1, 1, 1), width = 2)
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showlakes = TRUE,
+  lakecolor = rgb(1, 1, 1)
+)
+color <- colorRampPalette(c("white", "sienna2"))(20)
+fig <- plot_geo(kfc, locationmode = 'USA-states')
+fig <- fig %>% add_trace(
+  z = ~count, text = ~hover, locations = ~province,
+  color = ~count, colors = color
+)
+fig <- fig %>% colorbar(title = "KFC Count")
+fig <- fig %>% layout(
+  title = 'KFC Count by State<br>',
+  geo = g
+)
+fig
+```
+### Pizza Hut
+```{r}
+#Pizza Hut
+ph <- data2 %>%
+  filter(name == "Pizza Hut") %>%
+  group_by(province) %>%
+  summarise(count = n())
+#print(kfc)
+ph$hover <- with(ph, paste(province, '<br>', "Pizza Hut Count:", count, "<br>"))
+l <- list(color = rgb(1, 1, 1), width = 2)
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showlakes = TRUE,
+  lakecolor = rgb(1, 1, 1)
+)
+color <- colorRampPalette(c("white", "sienna2"))(20)
+fig <- plot_geo(ph, locationmode = 'USA-states')
+fig <- fig %>% add_trace(
+  z = ~count, text = ~hover, locations = ~province,
+  color = ~count, colors = color
+)
+fig <- fig %>% colorbar(title = "Pizza Hut Count")
+fig <- fig %>% layout(
+  title = 'Pizza Hut Count by State<br>',
+  geo = g
+)
+fig
+```
+### Wendy's
+```{r}
+#Wendy's
+w <- data2 %>%
+  filter(name == "Wendy's") %>%
+  group_by(province) %>%
+  summarise(count = n())
+#print(kfc)
+w$hover <- with(w, paste(province, '<br>', "Wendy's Count:", count, "<br>"))
+l <- list(color = rgb(1, 1, 1), width = 2)
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showlakes = TRUE,
+  lakecolor = rgb(1, 1, 1)
+)
+fig <- plot_geo(w, locationmode = 'USA-states')
+color <- colorRampPalette(c("white", "sienna2"))(20)
+fig <- fig %>% add_trace(
+  z = ~count, text = ~hover, locations = ~province,
+  color = ~count, colors = color
+)
+fig <- fig %>% colorbar(title = "Wendy's Count")
+fig <- fig %>% layout(
+  title = 'Wendy\'s Count by State<br>',
+  geo = g
+)
+fig
+```
+### Taco Bell
+```{r}
+#Taco Bell
+tb<- data2 %>%
+  filter(name == "Taco Bell") %>%
+  group_by(province) %>%
+  summarise(count = n())
+#print(kfc)
+tb$hover <- with(tb, paste(province, '<br>', "Taco Bell Count:", count, "<br>"))
+l <- list(color = rgb(1, 1, 1), width = 2)
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showlakes = TRUE,
+  lakecolor = rgb(1, 1, 1)
+)
+fig <- plot_geo(tb, locationmode = 'USA-states')
+color <- colorRampPalette(c("white", "sienna2"))(20)
+fig <- fig %>% add_trace(
+  z = ~count, text = ~hover, locations = ~province,
+  color = ~count, colors = color
+)
+fig <- fig %>% colorbar(title = "Taco Bell Count")
+fig <- fig %>% layout(
+  title = 'Taco Bell Count by State<br>',
+  geo = g
+)
+fig
+```
+
+### Fat
+
+```{r}
+store_counts <- data2 %>%
+  group_by(name, province) %>%
+  summarise(total_count = n()) %>%
+  pivot_wider(names_from = name, values_from = total_count, values_fill = 0) %>%
+  mutate(total = rowSums(across(-province)))
+store_counts <- store_counts %>%
+  mutate(count = as.integer(total))
+store_counts$hover <- with(store_counts, paste(province, '<br>', "Count:", total, "<br>"))
+l <- list(color = rgb(1, 1, 1), width = 2)
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showlakes = TRUE,
+  lakecolor = rgb(1, 1, 1)
+)
+fig <- plot_geo(store_counts, locationmode = 'USA-states')
+color <- colorRampPalette(c("white", "sienna2"))(20)
+fig <- fig %>% add_trace(
+  z = ~count, text = ~hover, locations = ~province,
+  color = ~count, colors = color
+)
+fig <- fig %>% colorbar(title = "Total Count")
+fig <- fig %>% layout(
+  title = 'Total Count by State<br>',
+  geo = g
+)
+fig
+
+```
+```{r}
+# Replace newline characters in column names with spaces
+names(df) <- gsub('\n', ' ', names(df))
+
+# Print missing values before and after dropping a specific column
+print(colSums(is.na(df)))
+df <- df[, !(names(df) %in% c('Weight Watchers Pnts'))]
+print(colSums(is.na(df)))
+
+# Create a collection for special values
+special_values_collection <- list()
+
+# Loop through each column starting from the third column (index 2)
+for (column in names(df)[3:length(names(df))]) {
+  # Initialize the value of the collection to a list
+  special_values_collection[[column]] <- c()
+
+  # Iterate through unique values in the column
+  for (value in unique(df[[column]])) {
+    # Try converting the value to a numeric type
+    is_numeric <- suppressWarnings(!is.na(as.numeric(value)))
+    
+    # If not numeric, add to the special values collection
+    if (!is_numeric) {
+      special_values_collection[[column]] <- c(special_values_collection[[column]], value)
+    }
+  }
+}
+
+# Loop through columns and update them
+for (column in names(df)[3:length(names(df))]) {
+  cat("Column: ", column, "\n")
+  special_chars <- special_values_collection[[column]]
+  values <- as.numeric(df[!(df[[column]] %in% special_chars), column])
+  mean_value <- round(mean(values, na.rm = TRUE), 3)
+  
+  # Fill missing values with the mean
+  df[[column]][is.na(df[[column]])] <- mean_value
+  
+  # Replace special characters with mean or specific value
+  for (special_char in special_chars) {
+    if (special_char == "<1") {
+      df[[column]] <- ifelse(df[[column]] == special_char, 0, df[[column]])
+    } else {
+      df[[column]] <- ifelse(df[[column]] == special_char, mean_value, df[[column]])
+    }
+  }
+  
+  # Convert the column to numeric type
+  df[[column]] <- as.numeric(df[[column]])
+}
+
+# Print missing values after updating
+#print(colSums(is.na(df)))
+```
+
+```{r}
+library(ggplot2)
+library(ggExtra)
+library(plotly)
+
+# 假设你已经有了一个名为fast_food_data的数据框，其中包含Calories, Total.Fat..g., 和Company字段
+
+# 创建ggplot对象
+p <- ggplot(df, aes(x = Calories, y = TotalFat, color = Company, 
+                                 text = paste("Company=", Company, "\nCalories=", Calories, 
+                                              "\nTotal Fat (g)=", TotalFat,"\nItem=",Item))) +
+  geom_point()
+
+# 将ggplot对象转换为交互式plotly对象
+p_interactive <- ggplotly(p, tooltip = "text")
+
+#p_interactive
+
+
+
+
+```
+
+```{r}
+a<-max(df$Calories)
+b<-min(df$Calories)
+df$Calories_group <- cut(df$Calories, breaks=seq(b, a, by=10), include.lowest=TRUE, right=FALSE)
+summary_data <- df %>%
+  group_by(Calories_group, Company) %>%
+  summarise(counts = n(), .groups = 'drop')
+# 创建直方图
+histogram_plot <- ggplot(df, aes(x = Calories_group, fill = Company,text = paste("Calories Interval=",Calories_group,"\nCompany=", Company))) +
+  geom_bar(position="stack", alpha=0.5) +
+  theme_minimal()+theme(legend.position = "none") +theme(axis.text.x = element_blank(),axis.title.x = element_blank(),  # Remove x-axis labels
+        axis.ticks.x = element_blank(),  # Remove x-axis ticks
+        legend.position = "none" )
+
+# 打印图表
+h_interactive <- ggplotly(histogram_plot, tooltip = "text")
+
+```
+
+```{r}
+a1<-max(df$TotalFat)
+b1<-min(df$TotalFat)
+df$TotalFat_group <- cut(df$TotalFat, breaks=seq(b, a, by=10), include.lowest=TRUE, right=FALSE)
+
+# 创建一个包含每个区间数据汇总的数据框
+summary_data1 <- df %>%
+  group_by(TotalFat_group, Company) %>%
+  summarise(counts = n(), .groups = 'drop')
+# 创建直方图
+histogram_plot1<- ggplot(df, aes(x = TotalFat_group, fill = Company,text = paste("Total Fat Interval=",TotalFat_group,"\nCompany=", Company))) +
+  geom_bar(position="stack", alpha=0.5) +
+  theme_minimal()+theme(axis.text.y  = element_blank(), axis.title.y = element_blank(), # Remove x-axis labels
+        axis.ticks.y = element_blank(),  # Remove x-axis ticks
+        legend.position ="none" ) +
+  coord_flip()
+
+# 打印图表
+h_interactive1 <- ggplotly(histogram_plot1, tooltip = "text")
+
+#h_interactive1
+
+```
+
+# Total Fat vs. Calories {data-navmenu="Correlation and Comparison"}
+
+```{r}
+library(plotly)
+
+# Create empty plot as a placeholder for where NULL was used
+empty_plot <- plotly_empty()
+
+# Assuming h_interactive, p_interactive, and h_interactive1 are your plotly objects
+# Create a subplot layout
+combined_plot <- subplot(
+  list( p_interactive, h_interactive1,h_interactive, empty_plot),
+  nrows = 2, # Define two rows
+  widths = c(0.7, 0.3), # Define the relative widths of the columns
+  heights = c(0.3, 0.7), # Define the relative heights of the rows
+  shareX = FALSE, # Share the x-axis among the subplots
+  shareY = FALSE, # Do not share the y-axis among the subplots
+  titleX = TRUE, # Display the x-axis title
+  titleY = TRUE  # Display the y-axis title
+)
+
+combined_plot <- combined_plot %>%
+  layout(
+    xaxis = list(domain = c(0, 0.7)),
+    xaxis2 = list(domain = c(0.7, 1)),
+    xaxis3 = list(domain = c(0, 0.7), anchor = 'y3'),
+    xaxis4 = list(domain = c(0.7, 1), anchor = 'y4'),
+    yaxis = list(domain = c(0, 0.7)),
+    yaxis2 = list(domain = c(0, 0.7), anchor = 'x2'),
+    yaxis3 = list(domain = c(0.7, 1)),
+    yaxis4 = list(domain = c(0.7, 1), anchor = 'x4'),
+    barmode = 'stack'  # 调整边距
+  )
+
+# Print the combined plot
+combined_plot
+
+
+```
+
+```{r}
+
+# Clean the data: Convert columns to numeric, if they are not already
+# Assume 'Cholesterol..mg.' and 'Calories' are the correct column names from your dataset
+df$Cholesterol <- as.numeric(df$`Cholesterol`)
+df$Calories <- as.numeric(df$Calories)
+
+# Create a scatter plot without x-axis labels
+B_plot<-ggplot(df, aes(x =Item, y = Cholesterol, size = Calories, color = Calories,text = paste("company=",Company,"\nCalories=",Calories,"\nItems=",Item,"\nCholesterol=",Cholesterol))) +
+  geom_point(alpha = 0.7) +  # Make the points semi-transparent
+  scale_size(range = c(1, 5)) +  # Adjust the size range for the points
+  scale_color_gradient(low = "yellow", high = "red") +  # Color gradient from blue to red
+  theme_minimal() +  # Use a minimal theme
+  theme(axis.text.x = element_blank(),  # Remove x-axis labels
+        axis.ticks.x = element_blank(),  # Remove x-axis ticks
+        legend.position = "right")   # Position the legend on the right
+  
+B_interactive <- ggplotly(B_plot, tooltip = "text")
+
+B_interactive
+
+
+```

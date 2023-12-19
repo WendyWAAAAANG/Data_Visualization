@@ -1,0 +1,41 @@
+---
+title: "Lab2-2_EDA_2030026003"
+author: "CaiHuaiyu(Edward)"
+date: '2023-03-10'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+2 In-Class Exercise
+Please draw the 4-plot for the data Data.txt (download from iSpace).
+Hint: use par(mfrow=c(2,2)) to seperate the window into 2*2 parts.
+
+```{r}
+library(readr)
+data<-read.table("Data.txt")
+data
+n<-nrow(data)
+y<-unlist(data)
+
+par(mfrow=c(2,2))
+
+plot(1:n, y, type = "l",
+     main = "Run sequence plot",
+     xlab = "i",
+     ylab = "Y_i",
+     sub = "Run sequence plot")
+
+plot(y[-1],y[-length(y)], type="p",
+     cex=1, col="red", pch=16,main = "Lag 1 plot",sub="Lag 1 plot")
+
+hist(y, breaks = 30,main = "Histogram",sub="Histogram",xlim=c(-2000,2000),ylim=c(0,30))
+
+qqnorm(y, main="Normal probablity plot",sub="Normal probablity plot")
+qqline(y)
+```
+

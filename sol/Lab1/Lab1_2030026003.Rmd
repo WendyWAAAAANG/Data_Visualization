@@ -1,0 +1,167 @@
+---
+title: "Lab 1 exercise - R basic commands"
+author: "CaiHuaiyu(Edward) - 2030026003"
+date: "2023/2/25"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Q1. Let $x$ be defined as follow.   
+a. Add 3 to just the even-index elements.  
+b. Compute the square root of each element.  
+```{r}
+x <- c(11,10,5,9,14,12,18,2,17,9,1,7,1,15,16,7,16,12,13,3,8,3,11,1,5,7,7,10,6,10,17,13,1,2,17,1,15,8,12,3,6,15,10,3,10,12,19,17,15,12,18,17,1,13,5,9,18,2,20,16,15,7,9,12,12,5,5,7,7,9,17,7,15,11,10,12,19,8,13,3,7,14,13,18,1,11,18,1,12,18,5,12,5,10,3,6,11,12,1,3)
+```
+
+```{r}
+# Write your answer here
+#a)
+y<-1:length(x)
+y<-x[seq(2,length(x),2)]+3
+y
+#b)
+m<-1:length(x)
+m<-sqrt(x)
+m
+```
+
+Q2. Given x = [3 15 9 12 -1 -12 9 6 1], provide the command that will  
+a) set the values of x that are positive to zero   
+b) set values that are multiples of 3 to 3    
+c) multiply the values of x that are even by 5   
+d) extract the values of x that are greater than 10 into a vector called y   
+e) Find the index position of elements in x which are larger than 4  
+
+```{r}
+# Write your answer here
+x<-c(3,15,9,12,-1,-12,9,6,1)
+#a)
+y<-1:length(x)
+y<-x
+y[y>0]<-0
+y
+#b)
+y<-1:length(x)
+y<-x
+y[y%%3==0]<-3
+y
+#c)
+y<-1:length(x)
+y<-x
+y[y%%2==0]<-5*y[y%%2==0]
+y
+#d)
+y<-1:length(x)
+y<-x[x>10]
+y
+#e)
+y<-1:length(x)
+y<-which(x>4)
+y
+```
+
+
+Q3. Given the matrix A as following
+```{r}
+a <- c(2,4,1,6,7,2,3,5,9)
+A <- matrix(a, nrow=3, ncol=3, byrow=T)
+A
+```
+provide the commands needed to  
+a) assign the last 2 rows of A to a matrix called y   
+b) compute the sum over the columns of A  
+c) compute the sum over the rows of A  
+d) compute the standard deviation of each column of A  
+e) Standardize the matrix A such that columns of A are centered to have mean 0 and scaled to have standard deviation 1.   
+
+
+```{r}
+# Write your answer here
+#a)
+y = matrix(c(A[2,],A[3,]), nrow = 2, ncol = 3, byrow = T)
+y
+#b)
+ncol(A)
+sum(A[,1])
+sum(A[,2])
+sum(A[,3])
+#c)
+nrow(A)
+sum(A[1,])
+sum(A[2,])
+sum(A[3,])
+#d)
+sd(A[,1])
+sd(A[,2])
+sd(A[,3])
+#e)
+scale(A,center=T,scale=T)
+```
+
+Q4. The data file “country.txt” in Ispace contains numerous population indicators for a sample of 115 countries.
+Read the data file into R and answer the following questions.  
+a. How many variables are included in the dataset?  
+b. What is the percentage of developing country (develop=1) in this data?  
+c. What is the standard deviation of the variable death rate?  
+d. What is the range of GDP for the countries in which death rate is greater than 8?  
+e. What is the mean of GDP for the developing countries which have death rate higher than 10?  
+f. What is the correlation coefficient between GDP and birthrate?  Discuss the relationship between GDP and the birthrate.  
+
+```{r}
+# Write your answer here
+#setwd("C:\Users\54056\Desktop\UIC\Year 3\Semester2\Introduction to data visualization\R\Lab1")
+rt <- read.table("country.txt",head=TRUE);
+#rt
+ncol(rt)
+#b)
+sum(rt[[8]])/nrow(rt)
+#c)
+sd(rt[['deathrate']])
+#d)
+result<-rt[which(rt$deathrate>8),]
+range(result$gdp)
+#e)
+result<-rt[which(rt$deathrate>10),]
+#result
+mean(result$gdp)
+#f)
+cor.test(rt$gdp,rt$birthrate)
+#they are negative relative
+```
+
+Q5. Fibonacci sequence is defined by F(1)=F(2)=1 and F(n)=F(n–1)+F(n–2). Write an R function called `Fibonacci` which displays the first n Fibonacci numbers and computes their average. For example, if the input n is 20, the output of Fibonacci (20) shall look like:  
+The first 20 Fibonacci numbers are:  
+1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597 2584 4181 6765  
+The average is 885.5  
+
+```{r}
+# write your answer here
+Fibonacci <- function(n)
+{
+  f <- c()
+  f[1] <- 1
+  f[2] <- 1
+  if(n == 1|n == 2)
+  {
+    f[n] <- f[n]
+    return(f)
+  }
+  else
+  {
+    for(i in 3:n)
+    {
+      f[i] <- f[i-1] + f[i-2]
+    }
+    return(f)
+  }
+}
+Fibonacci(20)
+mean(Fibonacci(20))
+```
+
+
+
+
+

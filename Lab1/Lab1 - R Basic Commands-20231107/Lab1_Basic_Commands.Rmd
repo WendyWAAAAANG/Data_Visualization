@@ -1,0 +1,647 @@
+---
+title: "R Tutorial --- Basic commands"
+author: "Data Visualization"
+date: ""
+output: 
+  html_document:
+    fig_height: 5
+    fig_width: 5
+    toc: true
+    # number_sections: yes
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+**Prerequisites**:
+
+$\bullet$ Download R 
+
+$\bullet$ Download R studio
+
+If you have no experience with the R language, here are some resources for getting started:
+
+$\bullet$ A (very) short introduction to R: <https://cran.r-project.org/doc/contrib/Torfs+Brauer-Short-R-Intro.pdf>
+
+$\bullet$ Getting up to speed with R: <https://rkabacoff.github.io/datavis/Rintro.pdf>
+
+
+## 1. R Overview 
+
+R is a programming language and software environment for statistical analysis, graphics representation and reporting. 
+The core of R is an interpreted computer language which allows branching and looping as well as modular programming using functions. 
+
+**Rstudio** is an Integrated Development Environment (IDE) for R. There are two free versions *Rstudio Desktop* and *Rstudio Server*. You can download it from <https://www.rstudio.com/products/rstudio/download/>.
+
+
+### 1.1. Features of R
+
+The following are the important features of R:
+
+$\bullet$ R is a well-developed, simple and effective programming language which includes conditionals, loops, user defined recursive functions and input and output facilities.
+
+$\bullet$ R has an effective data handling and storage facility,
+
+$\bullet$ R provides a suite of operators for calculations on arrays, lists, vectors and matrices.
+
+$\bullet$ R provides a large, coherent and integrated collection of tools for data analysis.
+
+$\bullet$ R provides graphical facilities for data analysis and display either directly at the computer or printing at the papers.
+
+
+## 2. Basic Syntax
+
+As a convention, we will start learning R programming by writing a "Hello, World!" program.
+
+```{r, include=TRUE, eval=TRUE, tidy=TRUE, message=FALSE, warning=FALSE}
+# My first program in R Programming
+myString <- "Hello, World!"
+print(myString)
+
+# Add two numbers
+print(7 + pi)
+
+```
+
+
+### 2.1. Navigating directories
+$\bullet$ `getwd()`: Returns the current working directory.
+
+$\bullet$ `setwd()`: Set the working directory.
+
+$\bullet$ `dir()`: Return the list of the directory.
+
+$\bullet$ `sessionInfo()`: Return the session of the windows.
+
+$\bullet$ `date()`: Return the current date.
+
+
+
+```{r, eval=FALSE}
+# Show directory, session information, date
+getwd()
+dir()
+sessionInfo()
+date()
+```
+
+### 2.2. Installing packages 
+
+```{r, eval=FALSE}
+# install packages
+install.packages("rmarkdown")
+install.packages("tinytex")
+install.packages("knitr")
+install.packages("lattice")
+install.packages("ggplot2")
+# load the required package
+library(lattice)
+
+# Use help() function for on-line help
+help(print)
+```
+
+### 2.3. Clearing the console and environment
+We clear console in R and RStudio, In some cases when you run the codes using “source” and “source with echo” your console will become messy. And it is needed to clear the console. So let’s now look at how to clear the console. The console can be cleared using the shortcut key **ctrl + L**. 
+
+```{r}
+# Define a variable a=1
+a <- 1
+# Remove a variable a
+rm(a) 
+# Remove all the variables in the current environment
+rm(list=ls())
+```
+
+### 2.4. Assignment commands
+In R, the assignment can be denoted in three ways:
+
+1. `=` (Simple Assignment)
+
+2. `<-` (Leftward Assignment)
+
+3. `->` (Rightward Assignment)
+
+This is an example:
+```{r}
+# Assignment values to three variables in three ways
+var1 = "Simple Assignment"
+var2 <- "Leftward Assignment"
+"Rightward Assignment" -> var3
+
+# print the three variables
+print(var1)
+print(var2)
+print(var3)
+```
+
+### 2.5 Frequent Used Operators
+```{r}
+1 + 2
+2*3
+11/2
+11 %% 2
+3^2
+(5 %% 2) == 1
+```
+
+Operator | Meaning
+-------- | ----------
+|        | or
+&        | and
+$<$      | less
+$>$      | greater
+$<=$     | less or =
+$>=$     | greater or =
+!        | not
+!=       | not equal
+==       | is equal
+         |
+
+
+## 3. Data Types
+
+In contrast to other programming languages like C and java in R, the variables are not declared as some data type. The variables are assigned with **R-Objects** and the data type of the R-object becomes the data type of the variable. There are many types of R-objects. The frequently used ones are:
+
+$\bullet$ **Vectors**
+
+$\bullet$ **Lists**
+
+$\bullet$ **Matrices**
+
+$\bullet$ **Arrays**
+
+$\bullet$ **Factors**
+
+$\bullet$ **Data Frames**
+
+
+There are six data types of atomic objects. We show the general types including logical, numeric and character.
+
+```{r}
+# Logical type
+v <- TRUE
+print(class(v))
+
+# Numeric type
+v <- 7
+print(class(v))
+
+# Integer type
+v <- 2L
+print(class(v))
+
+# Character type
+v <- "TRUE"
+print(class(v))
+```
+
+### 3.1. Vectors
+
+Vector object is the simplest one. When you want to create vector with more than one element, you should use `c()` function which means to combine the elements into a vector.
+
+```{r}
+# Create a vector
+vec1 <- c(1,2,3)
+print(vec1)
+
+# Get the class of the vector
+print(class(vec1))
+
+# More examples
+vec2 <- 1:10
+print(vec2)
+
+vec3 <- seq(from = 1, to = 5, by = 1)
+print(vec3)
+
+color <- c("red", "green", "yellow")
+print(color)
+```
+
+```{r}
+# Access the component of a vector
+print(vec1[1])
+
+print(vec2[1:5])
+```
+#### More examples for vectors   
+1. Using colon operator with numeric data.
+2. Using sequence (Seq.) operator
+3. Using the c() function
+
+```{r}
+# 1. Using colon operator
+# Creating a sequence from 5 to 13.
+v <- 5:13
+print(v)
+# Creating a sequence from 6.6 to 12.6.
+v <- 6.6:12.6
+print(v)
+# If the final element specified does not belong to the sequence then it is discarded.
+v <- 3.8:11.4
+print(v)
+
+# 2. Using sequence (Seq.) operator
+# Create vector with elements from 5 to 9 incrementing by 1.
+print(seq(from = 5, to = 9, by = 1))
+
+# 3. Using the c() function
+# The logical and numeric values are converted to characters.
+s <- c('apple', 'red', 5, TRUE)
+print(s)
+print(class(s[3]))
+```
+
+```{r}
+# Student Practice
+```
+
+### 3.2. List
+A list is an R-object which can contain many different types of elements inside it like vectors, functions and even another list inside it.
+
+```{r}
+# Create a list
+list1 <- list(c(1, 4, 7), 32.5, cos, "string")
+names(list1) <- c("L1", "L2", "L3", "L4")
+
+# Print the list
+print(list1)
+
+# Access the first element by index
+list1[1]
+
+# Access the second element by name
+list1["L2"]
+
+class(list1[1])  # list
+
+list1[[1]]
+
+class(list1[[1]]) # numeric
+
+list1[[1]][2]
+
+# Add "new element" into the list
+list1[length(list1) + 1] <- "new element"
+list1
+
+# Remove the last element
+list1[length(list1)] <- NULL
+list1
+```
+
+```{r}
+# Student Practice
+```
+
+
+### 3.3. Matrices
+A matrix is a two-dimensional rectangular data set. It can be created using a vector input to the matrix function.
+
+```{r}
+# Create a matrix
+M = matrix(c(1, 2:6), nrow = 2, ncol = 3, byrow = TRUE)
+print(M)
+
+# Access the element of a matrix
+M[1, 1]
+
+M[1, ]
+
+M[, 2]
+
+M[1:2, 3]
+
+```
+
+```{r}
+# Student Practice
+```
+
+### 3.4 Arrays
+While matrices are confined to two dimensions, arrays can be of any number of dimensions. The array function takes a dim attribute which creates the required number of dimension. In the below example we create an array with two elements which are 3x3 matrices each.
+
+```{r}
+# Create an array
+a <- array(1:24, dim=c(4,3,2))
+print(a)
+
+b <- array(c('red','blue'), dim = c(3, 3, 2))
+print(b)
+
+# Access the element of an array
+a[1, 2, 1]   #[row, column, third-dimension]
+
+a[1:3, 1, 1]
+
+a[, 1:2, 1]
+
+a[, 2, ]
+
+is.matrix(a[, 2, ])  # matrix
+
+```
+
+```{r}
+# Student Practice
+```
+
+### 3.5. Factors
+Factors are the R-objects which are created using a vector. It stores the vector along with the distinct values of the elements in the vector as labels. The labels are always character irrespective of whether it is numeric or character or Boolean etc. in the input vector. They are useful in statistical modeling.
+
+Factors are created using the `factor()` function.The nlevels functions gives the count of levels.
+
+```{r}
+# Create a vector
+apple_colors <- c('green', 'green', 'yellow', 'red', 'red', 'red', 'green')
+
+# Create a factor object
+factor_apple <- factor(apple_colors)
+
+# Print the factor
+print(factor_apple)
+
+# Print the number of levels of the factor
+print(nlevels(factor_apple))
+
+# Access levels of the factor
+levels <- levels(factor_apple)  # Get the unique levels in the factor
+print(levels)
+
+# Access the element by index
+print(factor_apple[2])
+
+# Access the element by logical condition
+print(factor_apple[factor_apple == "green"])
+
+```
+
+```{r}
+# Student Practice
+```
+
+### 3.6. Data Frames
+Data frames are tabular data objects. Unlike a matrix in data frame each column can contain different modes of data. The first column can be numeric while the second column can be character and third column can be logical. It is a list of vectors of equal length.
+
+Data Frames are created using the `data.frame()` function.
+
+```{r}
+# Create the data frame
+df <- data.frame(gender = c("Male", "Female", "Male"), 
+                  height = c(151, 175, 192), 
+                  weight = c(49, 62, 78), 
+                  Age = c(42, 38, 26))
+print(df)
+
+# Get the structure of a date frame
+str(df)
+
+# Access a specific column by name
+print(df$gender)
+
+print(df[,"gender"])
+
+# Accessing a specific column by index
+print(df[, 2])
+
+# Access a specific row by index
+print(df[1, ])
+
+# Accessing a specific cell by row and column index
+print(df[2, 3])
+
+# Accessing a specific cell by row and column name
+print(df[1, "weight"])
+
+# Access rows based on logical condition
+print(df[df$Age > 30, ])
+
+# Access a subset of the dataframe using logical conditions
+print(df[df$Age > 30 & df$gender == "Female", ])
+
+```
+
+```{r}
+# Student Practice
+```
+
+
+## 4. Control Flow  
+### 4.1 if statement
+```{r eval=FALSE}
+# syntax for if statement  
+if (cond) {
+  statement
+}
+
+# syntax for if else statement
+if (cond) {
+  statement1
+} else {
+  statement2
+}
+
+# syntax for if else ladder statement
+if (cond) {
+  statement1
+} else if {
+  statement2
+} else if {
+  statement3
+} else {
+  statement4
+}
+```
+
+Example
+```{r}
+# If statement
+a <- 33
+b <- 200
+
+if (b > a) {
+  print("b is greater than a")
+} else if (a == b) {
+  print("a and b are equal")
+} else {
+  print("a is greater than b")
+}
+```
+
+
+### 4.2 for loop
+```{r eval=FALSE}
+# syntax for for loop
+for (variable in vector) {
+  statement
+}
+```
+
+Example
+```{r}
+# for loop
+for (x in 1:10) {
+  print(x)
+}
+```
+
+Decision making
+```{r}
+fruits <- list("apple", "banana", "cherry")
+for (x in fruits) {
+  if (x == "cherry") {
+    break
+  }
+  print(x)
+}
+```
+
+### 4.3 while statement
+```{r eval=FALSE}
+# syntax for while statement
+while (condition) {
+  statement
+}
+```
+Example
+```{r}
+a <- 1
+while (a < 10) {
+  print(a)
+  a <- a+1
+}
+```
+
+## 5. File Handling 
+In R Programming, handling of files such as reading and writing files can be done by using in-built functions present in R base package. In this article, let us discuss reading and writing of CSV files, creating a file, renaming a file, check the existence of the file, listing all files in the working directory, copying files and creating directories.
+
+### 5.1. Creating a File
+Using `file.create()` function, a new file can be created from console or truncates if already exists. The function returns a TRUE logical value if file is created otherwise, returns FALSE.
+
+```{r}
+# Create a file
+# The file created can be seen in your working directory
+file.create("DataVis.txt")
+```
+
+### 5.2. Writing Into a File
+`write.table()` function in R programming is used to write an object to a file. This function is present in utils package in R and writes data frame or matrix object to any type of file.
+
+```{r}
+# Write iris dataset into the txt file
+write.table(x = iris[1:10, ], file = "DataVis.txt")
+```
+
+### 5.3. Renaming a File
+The `file.rename()` function renames the file and return a logical value. The function renames files but not directories.
+
+```{r}
+# Rename file DataVis.txt to newDataVis.txt
+file.rename("DataVis.txt", "newDataVis.txt")
+```
+
+### 5.4. Reading a File
+Using `read.table()` function in R, files can be read and output is shown as dataframe. This functions helps in analyzing the dataframe for further computations.
+
+```{r}
+# Reading a txt file
+new.iris <- read.table(file = "newDataVis.txt")
+
+# Print
+print(new.iris)
+
+# Print the first part of the dataset
+head(new.iris)
+
+head(new.iris, 3)
+```
+
+```{r}
+# Student Practice
+```
+
+`read.csv()`: read.csv() is used for reading “comma separated value” files (“.csv”). In this also the data will be imported as a data frame.
+
+`read.csv2()`: read.csv() is used for variant used in countries that use a comma “,” as decimal point and a semicolon “;” as field separators.
+
+```{r}
+# R program to read a file in csv format
+
+# Write iris dataset into the csv file
+write.csv(x = iris[1:10, ], file = "DataVis.csv")
+
+# Using read.csv()
+myData = read.csv("DataVis.csv")
+print(myData)
+```
+
+
+`read.delim()`: This method is used for reading “tab-separated value” files (“.txt”). By default, point (“.”) is used as decimal points.
+
+`read.delim2()`: This method is used for reading “tab-separated value” files (“.txt”). By default, point (“,”) is used as decimal points.
+
+```{r}
+# R program reading a text file
+
+# Read a text file using read.delim()
+myData = read.delim("newDataVis.txt", sep = " ", header = T)
+
+print(myData)
+```
+
+
+`file.choose()`: In R it’s also possible to choose a file interactively using the function `file.choose()`, and if you’re a beginner in R programming then this method is very useful for you.
+
+```{r, eval=FALSE}
+# R program reading a text file using file.choose()
+myFile = read.table(file.choose(), header = TRUE)
+
+# If you use the code above in RStudio you will be asked to choose a file
+print(myFile)
+```
+
+Other reading file functions:
+
+`read_tsv()`: This method is also used for to read a tab separated (`\t`) values by using the help of readr package.
+
+`read_lines()`: This method is used for the reading line of your own choice whether it’s one or two or ten lines at a time. To use this method we have to import reader package.
+
+`read_file()`: This method is used for reading the whole file. To use this method we have to import reader package.
+
+### 5.5. Reading Files From Web
+It’s possible to use the functions `read.delim()`, `read.csv()` and `read.table()` to import files from the web.
+
+```{r,eval=TRUE}
+# R program to read a file from the internet
+
+# Using read.delim()
+myData = read.delim("http://www.sthda.com/upload/boxplot_format.txt")
+
+print(head(myData))
+```
+
+```{r}
+# Student Practice
+```
+
+
+
+**Reference**:
+
+<https://www.tutorialspoint.com/r/index.htm>
+
+<https://www.geeksforgeeks.org/file-handling-in-r-programming/?ref=lbp>
+
+
+
+
+
+
+
+
+
+
+
+

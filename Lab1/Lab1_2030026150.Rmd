@@ -1,0 +1,165 @@
+---
+title: "Lab 1-1 Exercise - R Basic Commands"
+author: "Ruoxin WANG (Wendy) - 2030026150"
+date: "2023/09/19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+---
+
+**Please input your student name and No. below.**    
+**Student Name: Ruoxin WANG  **  
+**Student No.: 2030026150  **  
+
+---
+
+Q1. Let $x$ be defined as follow.   
+a. Add 3 to just the even-index elements.  
+b. Compute the square root of each element.  
+```{r}
+x <- c(11,10,5,9,14,12,18,2,17,9,1,7,1,15,16,7,16,12,13,3,8,3,11,1,5,7,7,10,6,10,17,13,1,2,17,1,15,8,12,3,6,15,10,3,10,12,19,17,15,12,18,17,1,13,5,9,18,2,20,16,15,7,9,12,12,5,5,7,7,9,17,7,15,11,10,12,19,8,13,3,7,14,13,18,1,11,18,1,12,18,5,12,5,10,3,6,11,12,1,3)
+```
+
+```{r}
+# Write your code here
+# a
+x_3 <- 1:length(x)
+x_3 <- x[seq(2,length(x),2)] + 3
+print(x_3)
+```
+
+```{r}
+# b
+x_sqrt <- 1:length(x)
+x_sqrt <- sqrt(x)
+print(x_sqrt)
+```
+
+Q2. Given x = [3 15 9 12 -1 -12 9 6 1], provide the command that will  
+a) set the values of x that are positive to zero   
+b) set values that are multiples of 3 to 3    
+c) multiply the values of x that are even by 5   
+d) extract the values of x that are greater than 10 into a vector called y   
+e) Find the index position of elements in x which are larger than 4  
+
+```{r}
+# Write your code here
+x <- c(3,15,9,12,-1,-12,9,6,1)
+# a
+x_pos <- 1:length(x)
+x_pos <- x
+x_pos[x_pos > 0] <- 0
+print(x_pos)
+```
+
+```{r}
+# b
+x_multi <- 1:length(x)
+x_multi <- x
+x_multi[x_multi%%3 == 0] <- 3
+print(x_multi)
+```
+
+```{r}
+# c
+x_even <- 1:length(x)
+x_even <- x
+x_even[x_even%%2 == 0] <- 5 * x_even[x_even%%2==0]
+print(x_even)
+```
+
+```{r}
+# d
+y <- 1:length(x)
+y <- x[x>10]
+y
+```
+
+```{r}
+# e
+x_ind <- 1:length(x)
+x_ind <- which(x > 4)
+x_ind
+```
+
+Q3. Given the following list, please answer the questions below.  
+```{r}
+# Create a list containing a vector, a matrix and a list.
+list_data <- list(c("Jan", "Feb", "Mar"), matrix(c(3, 9, 5, 1, -2, 8), nrow = 2), list("green", 12.3))
+# Give names to the elements in the list.
+names(list_data) <- c("1st Quarter", "A_Matrix", "An Inner list")
+```
+
+a) Access the first element of the list using position.
+
+b) Access the last element of the list using name.
+
+c) Add element "New element" at the end of the list.
+
+d) Remove the last element.
+
+```{r}
+# Write your code here
+# a
+list_data[1]
+```
+```{r}
+# Write your code here
+# b
+list_data["An Inner list"]
+```
+
+```{r}
+# Write your code here
+# c
+list_data_new <- list_data
+list_data_new[4] = "New element"
+list_data_new
+```
+
+```{r}
+# Write your code here
+# d
+list_data_rm <- list_data
+list_data_rm[3] = NULL
+list_data_rm
+```
+
+Q4. Given the matrix A as following
+```{r}
+a <- c(2,4,1,6,7,2,3,5,9)
+A <- matrix(a, nrow=3, ncol=3, byrow=T)
+A
+```
+provide the commands needed to  
+a) assign the last 2 rows of A to a matrix called y   
+b) compute the sum over the columns of A  
+c) compute the sum over the rows of A  
+Hint: you can use function `apply`
+
+```{r}
+# Write your code here
+# a
+y <- A[2:3,]
+y
+```
+
+```{r}
+# Write your code here
+# b
+col_sum <- apply(A, 2, sum)
+col_sum
+```
+
+```{r}
+# Write your code here
+# c
+row_sum <- apply(A, 1, sum)
+row_sum
+```
+
+

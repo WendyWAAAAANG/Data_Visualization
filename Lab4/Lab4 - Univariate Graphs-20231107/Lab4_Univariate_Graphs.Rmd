@@ -1,0 +1,398 @@
+---
+title: "Univariate Graphs"
+subtitle: "Data Visualization - DS4073"
+author: ""
+date: ''
+output: 
+  html_document:
+    fig_height: 4
+    fig_width: 5
+    number_sections: yes
+    toc: true
+---
+
+** Setup **
+Please installed the following packages if you haven't installed them:
+```{r eval=FALSE}
+pkgs <- c("ggplot2", "dplyr", "mosaicData")
+install.packages(pkgs)
+```
+
+***
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+Univariate graphs plot the distribution of data from a single variable. The variable can be categorical (e.g., race, sex) or quantitative (e.g., age, weight).
+
+# Categorical
+The distribution of a single categorical variable is typically plotted with a bar chart, a pie chart, or (less commonly) a tree map.
+
+## Bar chart
+The `Marriage` dataset contains the marriage records of 98 individuals in Mobile County, Alabama. Below, a bar chart is used to display the distribution of wedding participants by race.
+```{r}
+library(ggplot2)
+data(Marriage, package = "mosaicData")
+# View(Marriage)
+
+# plot the distribution of race
+ggplot(Marriage, aes(x = race)) + 
+  geom_bar()
+```
+
+
+The majority of participants are white, followed by black, with very few Hispanics or American Indians.
+
+You can modify the bar fill and border colors, plot labels, and title by adding options to the `geom_bar` function.
+
+```{r}
+# plot the distribution of race with modified colors and labels
+ggplot(Marriage, aes(x = race)) + 
+  geom_bar(fill = "cornflowerblue", 
+           color="black") +
+  labs(x = "Race", 
+       y = "Frequency", 
+       title = "Participants by race")
+```
+
+### Percents
+Bars can represent percents rather than counts. For bar charts, the code `aes(x=race)` is actually a shortcut for `aes(x = race, y = ..count..)`, where `..count..` is a special variable representing the frequency within each category. You can use this to calculate percentages, by specifying the `y` variable explicitly.
+
+```{r}
+# plot the distribution as percentages
+ggplot(Marriage, 
+       aes(x = race, 
+           y = ..count.. / sum(..count..))) + 
+  geom_bar() +
+  labs(x = "Race", 
+       y = "Percent", 
+       title  = "Participants by race") +
+  scale_y_continuous(labels = scales::percent)
+```
+
+In the code above, the `scales` package is used to add % symbols to the y-axis labels.
+
+### Sorting categories
+It is often helpful to sort the bars by frequency. In the code below, the frequencies are calculated explicitly. Then the `reorder` function is used to sort the categories by the frequency. The option `stat="identity"` tells the plotting function not to calculate counts, because they are supplied directly.
+
+```{r}
+# calculate number of participants in 
+# each race category
+library(dplyr)
+plotdata <- Marriage %>%
+ count(race)
+print(plotdata)
+```
+
+This new dataset is then used to create the graph.
+
+```{r}
+# plot the bars in ascending order
+ggplot(plotdata, 
+       aes(x = reorder(race, n), 
+           y = n)) + 
+  geom_bar(stat = "identity") +
+  labs(x = "Race", 
+       y = "Frequency", 
+       title  = "Participants by race")
+```
+
+The graph bars are sorted in ascending order. Use `reorder(race, -n)` to sort in descending order. The `identity` statistic leaves the data unchanged.
+
+### Labeling bars
+Finally, you may want to label each bar with its numerical value.
+
+```{r}
+# plot the bars with numeric labels
+ggplot(plotdata, 
+       aes(x = race, 
+           y = n)) + 
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = n), 
+            vjust = -0.5) +
+  scale_y_continuous(limits = c(0, 100)) +
+  labs(x = "Race", 
+       y = "Frequency", 
+       title  = "Participants by race")
+```
+
+Here `geom_text` adds the labels. `vjust` controls vertical justification, and it takes value in $(-\infty, +\infty)$.
+
+Putting these ideas together, you can create a graph like the one below. The minus sign in `reorder(race, -pct)` is used to order the bars in descending order.
+
+```{r}
+# Loading package
+library(dplyr)
+library(scales)
+
+plotdata <- Marriage %>%
+  count(race) %>%
+  mutate(pct = n / sum(n),
+         pctlabel = paste0(round(pct*100), "%"))
+
+# plot the bars as percentages, 
+# in descending order with bar labels
+ggplot(plotdata, 
+       aes(x = reorder(race, -pct),
+           y = pct)) + 
+  geom_bar(stat = "identity",
+           fill = "indianred3",
+           color = "black") +
+  geom_text(aes(label = pctlabel), 
+            vjust = -0.25) +
+  scale_y_continuous(labels = percent, limits = c(0, 1)) +
+  labs(x = "Race", 
+       y = "Percent", 
+       title  = "Participants by race")
+```
+
+
+### Overlapping labels
+Category labels may overlap if (1) there are many categories or (2) the labels are long. Consider the distribution of marriage officials.
+
+```{r}
+# basic bar chart with overlapping labels
+ggplot(Marriage, aes(x = officialTitle)) + 
+  geom_bar() +
+  labs(x = "Officiate",
+       y = "Frequency",
+       title = "Marriages by officiate")
+```
+
+In this case, you can flip the x and y axes.
+
+```{r}
+# horizontal bar chart
+ggplot(Marriage, aes(x = officialTitle)) + 
+  geom_bar() +
+  labs(x = "",
+       y = "Frequency",
+       title = "Marriages by officiate") +
+  coord_flip()
+```
+
+Alternatively, you can rotate the axis labels.
+
+```{r}
+# bar chart with rotated labels
+ggplot(Marriage, aes(x = officialTitle)) + 
+  geom_bar() +
+  labs(x = "",
+       y = "Frequency",
+       title = "Marriages by officiate") +
+  theme(axis.text.x = element_text(angle = 45, 
+                                   hjust = 1))
+```
+
+`hjust` controls the horizontal justification (taking value in [0, 1]).
+
+## Pie chart
+Pie charts are controversial in statistics. If your goal is to compare the frequency of categories, you are better off with bar charts (humans are better at judging the length of bars than the volume of pie slices). If your goal is compare each category with the the whole (e.g., what portion of participants are Hispanic compared to all participants), and the number of categories is small, then pie charts may work for you. It takes a bit more code to make an attractive pie chart in R.
+
+```{r}
+# create a basic ggplot2 pie chart
+ plotdata <- Marriage %>%
+    count(race) %>%
+    arrange(desc(race)) %>%
+    mutate(prop = round(n * 100 / sum(n), 1))
+  
+  ggplot(plotdata, 
+         aes(x = "", 
+             y = prop, 
+             fill = race)) +
+    geom_bar(width = 1, 
+             stat = "identity", 
+             color = "black") +
+    coord_polar("y") +
+    theme_void()
+```
+
+The polar coordinate system is most commonly used for pie charts, which are a stacked bar chart in polar coordinates.
+`theme_void()` presents a completely empty theme.
+
+
+Now let’s get fancy and add labels, while removing the legend.
+
+```{r}
+library(dplyr)
+# create a pie chart with slice labels
+plotdata <- Marriage %>%
+  count(race) %>%
+  arrange(desc(race)) %>%
+  mutate(prop = round(n*100/sum(n), 1))
+
+plotdata$label <- paste0(plotdata$race, "\n",
+                         round(plotdata$prop), "%")
+
+ggplot(plotdata, 
+       aes(x = "", 
+           y = prop, 
+           fill = race)) +
+  geom_bar(width = 1, 
+           stat = "identity", 
+           color = "black") +
+  scale_fill_manual(values=c("#F03B20",
+                             "#F1A340",
+                             "#998EC3",
+                             "#7FCDBB")) +
+  geom_text(aes(label = label),
+            position = position_stack(vjust = 0.5)) +
+  coord_polar(theta = "y") +
+  theme_void() +
+  theme(legend.position = "FALSE") +
+  labs(title = "Participants by race")
+```
+
+
+The pie chart makes it easy to compare each slice with the whole. For example, Back is seen to roughly a quarter of the total participants.
+
+An alternative to plot pie chart is to use the `pie` function in library `graphics`.
+
+```{r}
+# create a pie chart with slice labels
+plotdata <- Marriage %>%
+  count(race) %>%
+  arrange(desc(race)) %>%
+  mutate(prop = round(n*100/sum(n), 1),
+         lab.ypos = cumsum(prop) - 0.5*prop)
+
+plotdata$label <- paste0(plotdata$race, " ",
+                         round(plotdata$prop), "%")
+
+pie(plotdata$prop, 
+    labels = plotdata$label,
+    radius = 1,
+    main = "Participants by race",
+    col = c("#7FCDBB","#998EC3", "#F1A340", "#F03B20"))
+```
+
+
+# Quantitative
+The distribution of a single quantitative variable is typically plotted with a histogram, kernel density plot, or dot plot.
+
+## Histogram
+Using the Marriage dataset, let’s plot the ages of the wedding participants.
+
+```{r}
+library(ggplot2)
+library(mosaicData)
+
+# plot the age distribution using a histogram
+ggplot(Marriage, aes(x = age)) +
+  geom_histogram() + 
+  labs(title = "Participants by age",
+       x = "Age")
+```
+
+
+Most participants appear to be in their early 20’s with another group in their 40’s, and a much smaller group in their later sixties and early seventies. This would be a multimodal distribution.
+
+Histogram colors can be modified using two options: 
+
+`fill` - fill color for the bars  
+`color` - border color around the bars
+
+```{r}
+# plot the histogram with blue bars and white borders
+ggplot(Marriage, aes(x = age)) +
+  geom_histogram(fill = "cornflowerblue", 
+                 color = "white") + 
+  labs(title="Participants by age",
+       x = "Age")
+```
+
+### Bins and bandwidths
+One of the most important histogram options is `bins`, which controls the number of bins into which the numeric variable is divided (i.e., the number of bars in the plot). The default is 30, but it is helpful to try smaller and larger numbers to get a better impression of the shape of the distribution.
+
+```{r}
+# plot the histogram with 20 bins
+ggplot(Marriage, aes(x = age)) +
+  geom_histogram(fill = "cornflowerblue", 
+                 color = "white", 
+                 bins = 20) + 
+  labs(title="Participants by age", 
+       subtitle = "number of bins = 20",
+       x = "Age")
+```
+
+Alternatively, you can specify the `binwidth`, the width of the bins represented by the bars.
+
+```{r eval=T}
+# plot the histogram with a binwidth of 5
+ggplot(Marriage, aes(x = age)) +
+  geom_histogram(fill = "cornflowerblue", 
+                 color = "white", 
+                 binwidth = 5) + 
+  labs(title="Participants by age", 
+       subtitle = "binwidth = 5 years",
+       x = "Age")
+```
+
+As with bar charts, the y-axis can represent counts or percent of the total.
+
+```{r}
+# plot the histogram with percentages on the y-axis
+library(scales)
+
+ggplot(Marriage, 
+       aes(x = age, 
+           y= ..count.. / sum(..count..))) +
+  geom_histogram(fill = "cornflowerblue", 
+                 color = "white", 
+                 binwidth = 5) + 
+  labs(title="Participants by age", 
+       y = "Percent",
+       x = "Age") +
+  scale_y_continuous(labels = percent)   # percent function from scale package can create a label for the given number
+```
+
+## Kernel density plot
+An alternative to a histogram is the kernel density plot. Technically, kernel density estimation is a nonparametric method for estimating the probability density function of a continuous random variable. (What??) Basically, we are trying to draw a smoothed histogram, where the area under the curve equals one.
+
+```{r}
+# Create a kernel density plot of age
+ggplot(Marriage, aes(x = age)) +
+  geom_density() + 
+  labs(title = "Participants by age")
+```
+
+
+The graph shows the distribution of scores. For example, the proportion of cases between 20 and 40 years old would be represented by the area under the curve between 20 and 40 on the x-axis.
+
+As with previous charts, we can use `fill` and `color` to specify the fill and border colors.
+
+```{r}
+# Create a kernel density plot of age
+ggplot(Marriage, aes(x = age)) +
+  geom_density(fill = "indianred3") + 
+  labs(title = "Participants by age")
+```
+
+### Smoothing parameter
+The degree of smoothness is controlled by the bandwidth parameter `bw`. To find the default value for a particular variable, use the `bw.nrd0` function. Values that are larger will result in more smoothing, while values that are smaller will produce less smoothing.
+
+```{r}
+# default bandwidth for the age variable
+bw.nrd0(Marriage$age)
+bw <- 1
+
+# Create a kernel density plot of age
+ggplot(Marriage, aes(x = age)) +
+  geom_density(fill = "deepskyblue", 
+               bw = bw) + 
+  labs(title = "Participants by age",
+       subtitle = paste0("bandwidth = ", bw))
+```
+
+In this example, the default bandwidth for age is 5.18. Choosing a value of 1 resulted in less smoothing and more detail.
+
+Kernel density plots allow you to easily see which scores are most frequent and which are relatively rare. However it can be difficult to explain the meaning of the y-axis to a non-statistician. (But it will make you look really smart at parties!)
+
+
+
+
+**Reference**
+
+https://rkabacoff.github.io/datavis/Univariate.html 

@@ -1,0 +1,73 @@
+---
+title: "Lab5_2030026003"
+author: "CaiHuaiyu(Edward)"
+date: "2023-03-31"
+output: html_document
+---
+
+## 1. Please count the number of married and single persons in each sector.
+```{r}
+# Loading package
+library(dplyr)
+library(ggplot2)
+
+# Loading data
+data(CPS85, package = "mosaicData")
+
+# Count the number of married and single persons in each sector 
+plotdata <- CPS85 %>%
+  group_by(sector) %>%
+  count(married)
+
+# Print the data
+print(plotdata)
+```
+
+## 2. Construct a stacked bar chart to show
+```{r}
+ggplot(plotdata, 
+       aes(x = factor(sector,
+                      levels = c("clerical", "const", 
+                                 "manag", "manuf", 
+                                 "other", "prof", "sales", "service")),
+           y = n,
+           fill = factor(married, 
+                         levels = c("Married", "Single"),
+                         labels = c("Married", 
+                                    "Single")))) + 
+  geom_bar(stat = "identity",
+           position = "stack") +
+  geom_text(aes(label = n), 
+            size = 4, 
+            position = position_stack(vjust = 0.5)) +
+  scale_fill_manual(values=c("brown1", "darkturquoise")) +
+  labs(y = "Number of persons", 
+       fill = "Drive Train",
+       x = "",
+       title = "Automobile Drive by Class")
+```
+## 3.Based on above question, 1. rotate the x labels as the output and change the fill colors of married, and 2. flip x and y axes.
+```{r}
+ggplot(plotdata, 
+       aes(x = factor(sector,
+                      levels = c("clerical", "const", 
+                                 "manag", "manuf", 
+                                 "other", "prof", "sales", "service")),
+           y = n,
+           fill = factor(married, 
+                         levels = c("Married", "Single"),
+                         labels = c("Married", 
+                                    "Single")))) + 
+  geom_bar(stat = "identity",
+           position = "stack") +
+  geom_text(aes(label = n), 
+            size = 4, 
+            position = position_stack(vjust = 0.5)) +
+  scale_fill_manual(values=c("#0073C2FF", "#EFC000FF")) +
+  labs(y = "Number of persons", 
+       fill = "Drive Train",
+       x = "",
+       title = "Automobile Drive by Class")+
+  theme(axis.text.x = element_text(angle = 45, size = 10, hjust = 0.5))
+```
+

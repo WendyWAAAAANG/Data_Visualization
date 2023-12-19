@@ -1,0 +1,32 @@
+---
+title: "Lab4_2030026003"
+author: "CaiHuaiyu(Edward)"
+date: "2023-03-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+data(Marriage, package = "mosaicData")
+plotdata <- Marriage %>%
+ count(sign)
+plt<-ggplot(plotdata, 
+       aes(x = reorder(sign, n), 
+           y = n)) + 
+  geom_bar(stat = "identity") +
+  labs(x = "Astrological sign", 
+       y = "Frequency", 
+       title  = "Astrological sign of bride/groom")
+plt
+
+plt2<-plt + geom_bar(stat = "identity",
+           fill = "lightblue",
+           color = "white") +
+  coord_flip()
+plt2
+```

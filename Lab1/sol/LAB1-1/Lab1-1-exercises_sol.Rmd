@@ -1,0 +1,116 @@
+---
+title: "Lab 1-1 exercise - R basic commands"
+author: "Data Visualization (DS4073)"
+date: ""
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Q1. Let $x$ be defined as follow.   
+a. Add 3 to just the even-index elements.  
+b. Compute the square root of each element.  
+```{r}
+x <- c(11,10,5,9,14,12,18,2,17,9,1,7,1,15,16,7,16,12,13,3,8,3,11,1,5,7,7,10,6,10,17,13,1,2,17,1,15,8,12,3,6,15,10,3,10,12,19,17,15,12,18,17,1,13,5,9,18,2,20,16,15,7,9,12,12,5,5,7,7,9,17,7,15,11,10,12,19,8,13,3,7,14,13,18,1,11,18,1,12,18,5,12,5,10,3,6,11,12,1,3)
+```
+
+```{r}
+# a)
+n=length(x)
+x[(1:n)%%2==0]=x[(1:n)%%2==0]+3
+# a) alternative
+x[c(F,T)]=x[c(F,T)]+3
+
+# b)
+sqrt(x)
+```
+
+Q2. Given x = [3 15 9 12 -1 -12 9 6 1], provide the command that will  
+a) set the values of x that are positive to zero   
+b) set values that are multiples of 3 to 3    
+c) multiply the values of x that are even by 5   
+d) extract the values of x that are greater than 10 into a vector called y   
+e) Find the index position of elements in x which are larger than 4  
+
+```{r}
+# a)
+x=c(3,15,9,12,-1,-12,9,6,1)
+x[x>0]=0
+x
+
+# b)
+x=c(3,15,9,12,-1,-12,9,6,1)
+x[x%%3==0]=3
+x
+
+# c)
+x=c(3,15,9,12,-1,-12,9,6,1)
+x[x%%2==0]=x[x%%2==0]*5
+x
+
+# d)
+x=c(3,15,9,12,-1,-12,9,6,1)
+y=x[x>10]
+y
+
+# e)
+x=c(3,15,9,12,-1,-12,9,6,1)
+which(x>4)
+# e) alternative
+(1:length(x))[x>4]
+```
+
+
+Q3. Given the following list, please answer the questions below.  
+```{r}
+# Create a list containing a vector, a matrix and a list.
+list_data <- list(c("Jan", "Feb", "Mar"), matrix(c(3, 9, 5, 1, -2, 8), nrow = 2), list("green", 12.3))
+# Give names to the elements in the list.
+names(list_data) <- c("1st Quarter", "A_Matrix", "An Inner list")
+```
+
+a) Access the first element of the list using position.
+
+b) Access the last element of the list using name.
+
+c) Add element "New element" at the end of the list.
+
+d) Remove the last element.
+
+```{r}
+# a) Access the first element of the list using position.
+list_data[1]
+# b) Access the last element of the list using name.
+list_data["An Inner list"]
+# c) Add element "New element" at the end of the list.
+list_data[length(list_data)+1] <- "New element"
+list_data
+# d) Remove the last element.
+list_data[length(list_data)] <- NULL
+list_data
+```
+
+
+Q4. Given the matrix A as following
+```{r}
+a <- c(2,4,1,6,7,2,3,5,9)
+A <- matrix(a, nrow=3, ncol=3, byrow=T)
+A
+```
+provide the commands needed to  
+a) assign the last 2 rows of A to a matrix called y   
+b) compute the sum over the columns of A  
+c) compute the sum over the rows of A  
+
+```{r}
+# a)
+y=A[1:2,]
+# b)
+sumc=apply(A,2,sum)
+# c) 
+sumr=apply(A,1,sum)
+
+```
+

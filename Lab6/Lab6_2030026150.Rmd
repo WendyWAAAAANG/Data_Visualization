@@ -1,0 +1,78 @@
+---
+title: 'Lab 6: Class Exercises'
+author: "Data Visualiaiton - DS4073"
+date: '2023/11/21'
+output: 
+  html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, error = FALSE)
+```
+
+# Class exercises
+#### Please design your visualizations. Submit the `.zip` file that contains the dataset, `.rmd`, `.html` files to iSpace.
+
+The "insurance.csv" file collects the personal medical cost in US. You can download this dataset on iSpace. The dataset contains 7 variables: 
+
+* age: age of primary beneficiary  
+* sex: insurance contractor gender, female, male  
+* bmi: Body mass index, providing an understanding of body, weights that are relatively high or low relative to height,
+objective index of body weight (kg / $m^2$) using the ratio of height to weight, ideally 18.5 to 24.9  
+* children: Number of children covered by health insurance / Number of dependents  
+* smoker: Smoking  
+* region: the beneficiary's residential area in the US, northeast, southeast, southwest, northwest.  
+* charges: Individual medical costs billed by health insurance  
+
+**Please abstract two tasks from the dataset and design the visualizations for your tasks according to the following requirements. **
+
+**Requirements:**    
+
+1. Please consider visualization design principles (Lecture 2 - 5), e.g. the expressiveness principle and effectiveness principle. Explain your design ideas.   
+2. Please create at least one multivariate graph.   
+3. There is no unique solution for the visualization. Please try your best to make your visualization informative and attractive.    
+4. Please explain the results, i.e. what insights can you extract from your visualizations?       
+```{r}
+# Write your code here
+library(ggplot2)
+data <- read.csv("insurance.csv")
+
+# Create scatter plot to represent the relationship between Age an Charges.
+# Group data according to Smoker.
+ggplot(data, aes(x = age, y = charges, color = smoker)) +
+  geom_point() +
+  labs(title = "Age vs Charges (Colored by Smoker)", x = "Age", y = "Charges")
+```
+
+```{r}
+# Create heatmap to represent the relationship between BMI and Charges.
+# Group data according to Smoker.
+ggplot(data, aes(x = bmi, y = charges, fill = smoker)) +
+  geom_bin2d(binwidth = c(2, 1000)) +
+  labs(title = "BMI vs Charges by Smoker", x = "BMI", y = "Charges") +
+  scale_fill_discrete(name = "Smoker")
+```
+
+```{r}
+ggplot(data, aes(x = bmi, y = charges, color = sex)) +
+  geom_point() +
+  facet_wrap(~region) +
+  labs(title = "BMI vs Charges by Sex and Region", x = "BMI", y = "Charges") +
+  theme_minimal()
+```
+
+
+**Please write your explanations below:**      
+1. Design Idea:
+(1) Encoding variables effectively: here I use visual encodings like color (for sex), position (for BMI and charges), and facets (for region) to represent multiple variables without overcrowding the plot.
+(2) Clarity in representation: The chosen plot type (scatter plot) effectively represents the relationships between BMI and charges, while color distinguishes between sexes. Faceting adds depth by showing regional differences.
+(3) Avoiding clutter: Careful use of elements prevents the plot from becoming too crowded, ensuring that the viewer can interpret the data without confusion.
+(4) Effectiveness Principle: To ensure effectiveness, I use Clear labeling and titles, and use context and relevance to help people understand how charges relate to BMI across regions and sexes.
+
+2. Conclusions from visualization:
+1. Whether there's a consistent increase in charges with higher BMI across regions.
+2. Whether the relationship between BMI and charges differs significantly between males and females.
+3. If certain regions have notably higher or lower charges despite similar BMI distributions.
+4. Potential outliers or anomalies in specific regions or among specific sexes concerning charges for certain BMI values.
+
+

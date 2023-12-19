@@ -1,0 +1,86 @@
+---
+title: "DV_Lab4"
+author: "Ruoxin WANG"
+date: "2023-11-07"
+output: html_document
+---
+
+Please complete the codes such that they can produce the same outputs.
+Submit the .rmd and .html files to iSpace.
+
+1. Please plot a bar chart for the variable ‘sign’ from the Marriage dataset.
+Hint: Notice the labels of x and y axes.
+```{r}
+#install.packages("mosaicData")
+```
+
+```{r}
+# Loading package
+library(ggplot2)
+library(dplyr)
+
+# Loading data
+data(Marriage, package = "mosaicData")
+
+# Write your code here
+sign_data <- Marriage %>%
+  count(sign) %>%
+  arrange(desc(n))
+
+plt1 <- ggplot(sign_data, 
+       aes(x = reorder(sign, -n), 
+           y = n)) + 
+  geom_bar(stat = "identity") +
+  labs(x = "Astrological sign", 
+       y = "Frequency", 
+       title  = "Astrological sign of bride/groom") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  geom_text(aes(label = n), vjust = -0.5)
+
+print(plt1)
+```
+
+
+2. Please flip the x and y axes, and modify the fill and border colors for all the bars. Change the theme to the classic type theme_classic().
+** Hint**: The colors lightblue and white may help. Notice the x and y labels.
+
+```{r}
+# Bar chart with flipping x and y and 
+# change the fill and border colors for all bars
+# Write your code here
+plt2 <- ggplot(sign_data, 
+              aes(x = n,
+                  y = reorder(sign, n))) +
+  geom_bar(stat = "identity", fill = "lightblue", color = "white") +
+  geom_text(aes(label = n), position = position_dodge(width = 0.9), hjust = -1) +
+  labs(x = "Frequency",
+       y = "Astrological sign",
+       title = "Astrological sign of bride/groom") +
+  theme_classic()
+
+print(plt2)
+
+```
+
+3. Which astrological sign has the highest proportion? Which astrological sign has the lowest proportion? Please calculate their proportions using R codes.
+```{r}
+# Write your code here
+# use table to calculate count of each astrological.
+sign_counts <- table(Marriage$sign)
+
+# calculate the proportion of each astrological.
+sign_proportions <- sign_counts / sum(sign_counts)
+
+# find the astrological which have highest and lowest proportion.
+max_proportion_sign <- names(sign_proportions[sign_proportions == max(sign_proportions)])
+min_proportion_sign <- names(sign_proportions[sign_proportions == min(sign_proportions)])
+
+# display results.
+cat("The astrological sigh which has the highest proportion: ", max_proportion_sign, "\n")
+cat("The highest proportion:", max(sign_proportions), "\n")
+cat("The astrological sigh which has the lowest proportion: ", min_proportion_sign, "\n")
+cat("The lowest proportion:", min(sign_proportions), "\n")
+```
+
+
+

@@ -1,0 +1,64 @@
+---
+title: "Lab2_2030026003"
+author: "CaiHuaiyu(Edward)"
+date: "2023-03-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+3 In-class exercise
+Please download the Salaries.txt from iSpace and complete the following requirements.
+
+# loading package
+library(dplyr)
+library(readr)
+
+# Please read Salaries data from the file Salaries.csv
+# write your answer here
+
+# Select the female professors whose salaries are between 80000 and 100000
+# write your answer here
+
+# Calculate the mean of income of professors grouped by sex
+# write your answer here
+
+```{r}
+# loading package
+library(dplyr)
+library(readr)
+
+# Please read Salaries data from the file Salaries.csv
+# write your answer here
+
+Salaries = read_csv("salaries.csv")
+Salaries
+
+# Select the female professors whose salaries are between 80000 and 100000
+# write your answer here
+#1.Those are Prof and AssProf
+newdata <- filter(Salaries, sex == "Female" & salary > 80000 & salary < 100000)
+newdata
+
+#2.Those are all Prof
+newdata1 <- filter(Salaries, sex == "Female" & salary > 80000 & salary < 100000 & rank == "Prof")
+newdata1
+
+# Calculate the mean of income of professors grouped by sex
+#1.Those are all Prof
+mean_result <- Salaries %>%
+  filter(rank == "Prof") %>%
+  group_by(sex) %>%
+  summarize(mean_income = mean(salary, na.rm=TRUE))
+mean_result
+
+#2.Those are Prof and AssProf
+mean_result1 <- Salaries %>%
+  group_by(sex) %>%
+  summarize(mean_income = mean(salary, na.rm=TRUE))
+mean_result1
+# write your answer here
+```
+

@@ -1,0 +1,75 @@
+---
+title: "Lab 1-2 exercise - R basic commands"
+author: "Data Visualization (DS4073)"
+date: ""
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Q1. The data file “country.txt” in Ispace contains numerous population indicators for a sample of 115 countries.
+Read the data file into R and answer the following questions.  
+a) How many variables are included in the dataset?  
+
+b) Print the first 11 rows of data.
+
+c) Get the max gdp from data frame.
+
+d) Get the country detail with max gdp.
+
+e) Write the first 20 rows of data to a txt file named "country20.txt".
+
+f) Write the first 20 rows of data to a csv file named "country20.csv".
+
+g) Read 'country20.csv' and check the results.
+
+h) What is the mean of GDP for the developing countries which have death rate higher than 10?
+
+```{r}
+data = read.table("country.txt",header=T)
+# a)
+str(data)
+# b) print the first 11 rows of data
+head(data, 11)
+# c) Get the max gdp from data frame.
+maxGDP <- max(data$gdp)
+print(maxGDP)
+# d) Get the country detail with max gdp
+data[which(data$gdp == maxGDP), ]
+# e) write the first 20 rows of data to a txt file "country20.txt".
+write.table(data[1:20,], file = "country20.txt")
+# f) write the first 20 rows of data to a csv file "country20.csv".
+write.csv(data[1:20,], file = "country20.csv")
+# g) read country20.csv and check the results
+myData = read.csv("country20.csv")
+print(myData)
+# h) What is the mean of GDP for the developing countries which have death rate higher than 10?
+attach(data)
+mean(gdp[develop==1& deathrate>10])
+```
+
+Q2. Fibonacci sequence is defined by F(1)=F(2)=1 and F(n)=F(n–1)+F(n–2). Write an R function called `Fibonacci` which displays the first n Fibonacci numbers and computes their average. For example, if the input n is 20, the output of Fibonacci (20) shall look like:  
+The first 20 Fibonacci numbers are:  
+1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597 2584 4181 6765  
+The average is 885.5  
+
+```{r}
+Fibonacci<-function(n){
+  F=c(1,1)
+  if (n>=3)
+    {for (i in 3:n)
+     F[i]=F[i-1]+F[i-2]
+     }
+  af=mean(F[1:n])
+ cat(paste('The first',n,'Fibonacci numbers are:'),'\n',F[1:n],'\n',paste('the average is',af))
+}
+
+Fibonacci(20)
+```
+
+
+
+
+

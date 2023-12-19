@@ -1,0 +1,173 @@
+---
+title: "DV_Assignment2"
+author: "Ruoxin WANG"
+date: "2023-11-14"
+output: html_document
+---
+
+# Assignment 2
+
+## Description
+
+Please complete the codes such that they can get the same outputs. Submit the .html and .rmd documents to iSpace.
+
+### 1. Prepare the data and use the pie chart to show the proportion of each type of pets.
+Hint: scale_fill_brewer() may help. Notice the color mapping.
+```{r}
+# Define the dataframe named 'plotdata'.
+# Write your code here.
+pet <- c("Dog", "Cat", "Psyduck", "Fragrant pig", "Lizard")
+num <- c(1600, 2100, 900, 600, 450)
+
+plotdata <- data.frame(pet = pet, num = num)
+plotdata
+```
+
+```{r}
+library(ggplot2)
+plotdata$pet <- reorder(plotdata$pet, -plotdata$num)
+plotdata$percentage <- plotdata$num / sum(plotdata$num) * 100
+
+pie_chart <- ggplot(plotdata, aes(x = "", y = num, fill = pet)) +
+  geom_bar(stat = "identity", width = 1, color = "black") +
+  coord_polar("y") +
+  scale_fill_brewer(palette = "Blues", direction = -1) +
+  theme_void() +
+  geom_text(aes(label = paste0(round(percentage, 1), "%")), position = position_stack(vjust = 0.5)) 
+print(pie_chart)
+```
+
+
+### 2. Use the dataset CPS85 from the package mosaicData. Please count the number of females and males in each sector.
+
+Hint: You can copy the command View(CPS85) in the console to view the tabular data of CPS85.
+```{r}
+# Loading data
+library(mosaicData)
+data(CPS85, package = "mosaicData")
+
+# Count the number of females and males in each sector 
+sector_gender_count <- table(CPS85$sector, CPS85$sex)
+
+# Convert the table to a data frame
+sector_gender_count_df <- as.data.frame(sector_gender_count)
+
+# Rename the columns
+names(sector_gender_count_df) <- c("Sector", "Sex", "Count")
+
+# Exclude rows where Count is 0
+sector_gender_count_df <- sector_gender_count_df[sector_gender_count_df$Count != 0, ]
+
+# Order the data frame by the "Sector" column
+sector_gender_count_df <- sector_gender_count_df[order(sector_gender_count_df$Sector), ]
+
+# Print the result
+print(sector_gender_count_df)
+```
+
+```{r}
+library(mosaicData)
+
+data(CPS85, package = "mosaicData")
+
+sector_gender_count <- with(CPS85, table(sector, sex))
+sector_gender_count_df <- as.data.frame.table(sector_gender_count)
+names(sector_gender_count_df) <- c("sector", "sex", "n")
+
+print(sector_gender_count_df)
+```
+
+Construct a stacked bar chart to show the number of females and males in each sectors.
+Hint: geom_text() may help you show the numbers in the bars. The two color values #C73C68 and B6C468 can help.
+```{r}
+library(ggplot2)
+library(tidyr)
+
+sector_gender_count_df <- as.data.frame.matrix(table(CPS85$sector, CPS85$sex))
+sector_gender_count_df$sector <- rownames(sector_gender_count_df)
+rownames(sector_gender_count_df) <- NULL
+
+sector_gender_count_df <- gather(sector_gender_count_df, key = "sex", value = "count", -sector)
+
+ggplot(sector_gender_count_df,
+       aes(x = reorder(sector, -count),
+           y = count,
+           fill = sex)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = ifelse(count != 0, as.character(count), "")), position = position_stack(vjust = 0.5)) +
+  scale_fill_manual(values = c("#C73C68", "#B6C468")) +
+  labs(x = 'Sector', y = "Number of Persons") +
+  theme_classic() +
+  coord_flip()
+```
+
+
+### 3. Based on the dataset SaratogaHouses from package mosaicData, please draw a scatterplot for house ages and prices with quadratic line of best fit.
+Hint: geom_smooth() may help you to construct the linear regression line. You can specify the points with size = 1, alpha = 0.4, the fitting line with size = 0.5, color = "tomato".
+```{r}
+library(mosaicData)
+library(ggplot2)
+
+# Load the SaratogaHouses dataset
+data(SaratogaHouses)
+
+# Create a scatterplot with quadratic line of best fit
+# Create a scatterplot with linear line of best fit
+ggplot(SaratogaHouses, aes(x = age, y = price)) +
+  geom_point(size = 1, alpha = 0.4,color = "cornflowerblue") +
+  geom_smooth(method = "lm", formula = y ~ x, 
+              size = 0.5, color = "tomato") +
+  scale_y_continuous(labels = scales::dollar_format(scale = 0.001)) +
+  labs(title = "Scatterplot of House Ages and Prices",
+       x = "House Age",
+       y = "Price")
+```
+
+
+### 4. Based on the dataset SaratogaHouses from package mosaicData, please draw the boxplot for the house price by number of rooms.
+Hint: Transparency of boxplot is specified as alpha = 0.5.
+```{r}
+# Plotting a boxplot for the house price by number of rooms
+# Write your code here
+library(mosaicData)
+data(SaratogaHouses, package = "mosaicData")
+
+ggplot(SaratogaHouses, aes(x = factor(rooms), y = price)) +
+  geom_boxplot(notch = TRUE, 
+               fill = "cornflowerblue", 
+               alpha = .5) +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  labs(title = "House Price by Number of Rooms",
+       x = "Number of Rooms", y = "Price") +
+  theme_minimal()
+```
+
+
+### 5. Please plot the Cleveland dot chart for the percentage of receipts in GDP by country. The datasset newgdp from the package CGPfunctions records current receipts of fifteen national governments as a percentage of gross domestic product. You can read more detail by running the code ??newgdp in the console.
+1. Selecting all the data in year 1979 and mutate the GDP into percentage.
+2. Plot the Cleveland dot chart for GDP percentage by country.
+Hint: Please install the package CGPfunctions if you haven’t installed. (No need to write the install code in the R code chunk below.) The range of x is (0.2, 0.6).
+
+```{r}
+# Loading data
+library(CGPfunctions)
+library(dplyr)
+data(newgdp, package = "CGPfunctions")
+
+gdp_1979 <- newgdp %>%
+  filter(Year == "Year1979") %>%
+  mutate(GDP_Percentage = GDP / 100)
+ggplot(gdp_1979, aes(x = GDP_Percentage, y = reorder(Country, GDP_Percentage))) +
+  geom_point(color = "pink", size = 3) +
+  geom_segment(aes(x = 0.2, xend = GDP_Percentage, yend = Country), color = "lightgrey") +
+  labs(title = "Percentage of Receipts in GDP by Country",
+       x = "",
+       y = "") +
+  theme_minimal()+ 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  scale_x_continuous(labels = scales::percent, limits = c(0.2, 0.6))
+```
+
+
+

@@ -1,0 +1,48 @@
+---
+title: "Lab 2 - Solution to In-Class Exercise"
+author: "Data Visualization DS4073"
+date: ''
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# In-class exercise 
+Please download the `Salaries_dirty.csv` from iSpace and complete the following requirements.
+
+```{r}
+# loading package
+library(dplyr)
+library(readr)
+
+# 1. Please read Salaries data from the file Salaries_dirty.csv
+Salaries <- read.csv("Salaries_dirty.csv", header = T)
+View(Salaries)
+sum(is.na(Salaries))
+
+# 2. Select the female professors (including assistant professor, associate professor, and full professor) whose salaries are between 50000 and 100000
+newdata <- filter(Salaries, sex == "Female" & salary > 50000 & salary < 100000)
+print(newdata)
+
+# 3. Calculate the mean of income of professors (all types of professor) grouped by sex
+newdata <- group_by(Salaries, sex)
+newdata <- summarize(newdata, mean_salary = mean(salary, na.rm = TRUE))
+print(newdata)
+
+# or using pipes %>%
+newdata <- Salaries %>% group_by(sex) %>% summarize(mean_salary = mean(salary, na.rm = TRUE))
+print(newdata)
+
+# 4. There are some missing values in the dataset. Please calculate the proportion of the missing values in each column.
+pctMiss = colSums(is.na(Salaries))/nrow(Salaries)
+pctMiss
+
+# 5. Please impute the missing values with the 10 nearest neighbors and then calculate the mean of income of professors (all types of professor) grouped by sex
+library(VIM)
+newdata <- Salaries %>% kNN(k=5) %>% group_by(sex) %>% summarize(mean_salary = mean(salary, na.rm = TRUE))
+print(newdata)
+```
+
+

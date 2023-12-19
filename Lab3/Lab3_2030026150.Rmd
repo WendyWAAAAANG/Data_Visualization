@@ -1,0 +1,68 @@
+---
+title: "Lab3_2030026150"
+author: "Ruoxin WANG"
+date: "2023-10-17"
+output: html_document
+---
+
+Q1. Create the following ggplots based on the dataset iris. The outputs should be the same. Please submit the .html and .rmd document.
+
+```{r}
+# Loading data
+data(iris)
+newdata <- iris
+str(newdata)
+```
+
+```{r}
+# Loading package
+library(ggplot2)
+
+# Creating a satterplot for two variables 'Sepal.Length' and 'Sepal.Width'
+# Write your codes here
+ggplot(data = newdata, 
+       mapping = aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point()
+```
+
+```{r}
+# Adding another variable 'Species' and indicate 'Species' using color 
+# Write your codes here
+ggplot(data = newdata, 
+       mapping = aes(x = Sepal.Length, y = Sepal.Width, col = Species)) + 
+  geom_point()
+```
+
+```{r}
+# Creating a satterplot for two variables 'Petal.Length' and 'Petal.Width'
+# Write your codes here
+ggplot(data = newdata, 
+       mapping = aes(x = Petal.Length, y = Petal.Width)) + 
+  geom_point()
+```
+
+```{r}
+# Adding another variable 'Species' and indicate 'Species' using color 
+# Write your codes here
+ggplot(data = newdata, 
+       mapping = aes(x = Petal.Length, y = Petal.Width, col = Species)) + 
+  geom_point()
+```
+
+
+Q2. Please visualize the `wt`, `hp`, and `am` variables from the dataset `mtcars` by the scatterplot like below. Use the smooth method `loess` for `wt` and `hp` for different types of transmission (variable: `am`).
+Hint: $col = factor(am)$:
+
+```{r}
+# see more details about the dataset `mtcars` by using code: help(mtcars)
+# write your answer here
+# Loading data
+data(mtcars)
+newdata <- mtcars
+# plot the data.
+ggplot(data = newdata, 
+       mapping = aes(x = wt, y = hp, col = factor(am))) + 
+  geom_point() + 
+  geom_smooth(method = "loess", formula = 'y ~ x')
+```
+

@@ -1,0 +1,100 @@
+---
+title: "Lab 1-2 Exercise - R Basic Commands"
+author: "Data Visualization (DS4073)"
+date: "2023/09/27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+---
+
+**Please input your student name and No. below.**    
+**Student Name: Ruoxin WANG **  
+**Student No.: 2030026150 **  
+
+---
+
+
+Q1. The data file “country.txt” in Ispace contains numerous population indicators for a sample of 115 countries.
+Read the data file into R and answer the following questions.  
+
+a) How many variables are included in the dataset?  
+```{r}
+data <- read.table("country.txt", head=TRUE)
+print(ncol(data))
+```
+
+b) Print the first 11 rows of data.
+```{r}
+head(data, 11)
+```
+
+c) Get the max gdp from data frame.
+```{r}
+max_res <- max(data$gdp)
+print(max_res)
+```
+
+d) Get the country detail with max gdp.
+```{r}
+detail_res <- data[which(data$gdp == max_res), ]
+print(detail_res)
+```
+
+e) Write the first 20 rows of data to a txt file named "country20.txt".
+```{r}
+write.table(head(data, 20), file = "country20.txt")
+```
+
+f) Write the first 20 rows of data to a csv file named "country20.csv".
+```{r}
+write.csv(head(data, 20), file = "country20.csv", row.names = FALSE)
+```
+
+g) Read 'country20.csv' and check the results.
+```{r}
+csv_data <- read.csv("country20.csv", header = TRUE)
+csv_data
+```
+
+h) What is the mean of GDP for the developing countries which have death rate higher than 10?
+```{r}
+dr <- data[which(data$deathrate>10), ]
+mean_res <- mean(dr[which(dr['develop']==1), 'gdp'])
+print(mean_res)
+```
+
+
+Q2. Fibonacci sequence is defined by F(1)=F(2)=1 and F(n)=F(n–1)+F(n–2). Write an R function called `Fibonacci` which displays the first n Fibonacci numbers and computes their average. For example, if the input n is 20, the output of Fibonacci (20) shall look like:  
+The first 20 Fibonacci numbers are:  
+1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597 2584 4181 6765  
+The average is 885.5  
+
+```{r}
+# write your answer here
+Fibonacci <- function(n) {
+  f <- c()
+  f[1] <- 1
+  f[2] <- 1
+  if(n == 1 | n == 2) {
+    f[n] <- f[n]
+    return(f)
+  } else {
+    for(i in 3:n) {
+      f[i] <- f[i-1] + f[i-2]
+    }
+    return (f)
+  }
+}
+# print out the result.
+print(Fibonacci(20))
+print(mean(Fibonacci(20)))
+```
+
+
+
+
+

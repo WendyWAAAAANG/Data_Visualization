@@ -1,0 +1,43 @@
+---
+title: "Lab3_2030026003"
+author: "CaiHuaiyu(Edward)"
+date: "2023-03-17"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r a}
+#install.packages("dplyr")
+#install.packages("ggplot2")
+library(dplyr)
+library(ggplot2)
+
+data(iris)
+newdata <- iris
+str(newdata)
+
+#1.
+ggplot(data = newdata, 
+       mapping = aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point()
+
+#2.
+ggplot(data = newdata, 
+       mapping = aes(x = Sepal.Length, y = Sepal.Width, col = Species)) + 
+  geom_point()
+
+#3.
+ggplot(data = newdata, 
+       mapping = aes(x = Petal.Length, y = Petal.Width)) + 
+  geom_point()
+
+#4.
+ggplot(data = newdata, 
+       mapping = aes(x = Petal.Length, y = Petal.Width, col = Species)) + 
+  geom_point()
+```

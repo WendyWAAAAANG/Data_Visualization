@@ -1,0 +1,99 @@
+---
+title: "Lab 2 - In-Class Exercise"
+author: "Data Visualization DS4073"
+date: ''
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# In-class exercise 
+Please download the `Salaries_dirty.csv` from iSpace and complete the following requirements.
+```{r}
+# loading package
+library(dplyr)
+library(readr)
+```
+
+```{r}
+# 1. Please read Salaries data from the file Salaries_dirty.csv
+# write you code here
+data <- read_csv("Salaries_dirty.csv")
+head(data)
+```
+
+
+```{r}
+# 2. Select the female professors (including assistant professor, associate professor, and full professor) whose salaries are between 50000 and 100000
+
+prof <- filter(data, sex == "Female" & salary > 50000 & salary < 100000 & rank == "AsstProf" || rank == "AssocProf" || rank == "Prof")
+head(prof)
+
+# write you code here
+#1.Those are AsstProf.
+prof_1 <- filter(data, sex == "Female" & salary > 50000 & salary < 100000 & rank == "AsstProf")
+head(prof_1)
+
+#2.Those are all Prof
+prof_2 <- filter(data, sex == "Female" & salary > 50000 & salary < 100000 & rank == "Prof")
+head(prof_2)
+
+#3.Those are AssoProf.
+prof_3 <- filter(data, sex == "Female" & salary > 50000 & salary < 100000 & rank == "AssocProf")
+head(prof_3)
+
+```
+
+```{r}
+# 3. Calculate the mean of income of professors (all types of professor) grouped by sex
+
+# write you code here
+##1.Those are all Prof
+#res_1 <- Salaries %>%
+#  filter(rank == "Prof") %>%
+#  group_by(sex) %>%
+#  summarize(mean_income = mean(salary, na.rm=TRUE))
+#print(res_1)
+##2.Those are all types of Prof
+
+res <- data %>%
+  group_by(sex) %>%
+  summarize(mean_income = mean(salary, na.rm=TRUE))
+print(res)
+
+```
+
+```{r}
+# 4. There are some missing values in the dataset. Please calculate the proportion of the missing values in each column.
+
+# write you code here
+prop <- colSums(is.na(data)/nrow(data))
+prop
+```
+
+```{r}
+
+# 5. Please impute the missing values with the 10 nearest neighbors and then calculate the mean of income of professors (all types of professor) grouped by sex
+
+library(VIM)
+#library(imputeTS)
+
+# write you code here
+# Impute missing values using k-nearest neighbors
+data_rmnull <- kNN(data, k = 10)
+
+#2. calculate the mean of income of professors (all types of professor) grouped by sex
+res <- data_rmnull %>%
+  group_by(sex) %>%
+  summarize(mean_income = mean(salary, na.rm=TRUE))
+print(res)
+
+```
+
+
+
+
